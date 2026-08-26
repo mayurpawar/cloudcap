@@ -720,7 +720,7 @@ def render_hub(project="demo-proj"):
         ("Memory", "finding-lifecycle store (Firestore)", "cross-scan new / recurring / resolved", "ready" if store_fs else "mock"),
         ("Identity", "runtime service account (cc-runtime)", "least-privilege, read-only", "ready"),
         ("Registry", "GEAP Agent Registry", "static fleet manifest", "mock"),
-        ("Guardrail", "Model Armor", "prompt-injection / tool-poisoning screen", "mock"),
+        ("Guardrail", "Model Armor", "prompt-injection / tool-poisoning screen (+ deterministic backstop)", L),
         ("Ownership", "Terraform state resolver", "one / none / conflict", "mock"),
     ]
 
