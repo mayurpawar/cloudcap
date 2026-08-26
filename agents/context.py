@@ -102,9 +102,15 @@ def build_context(
         # otherwise the disk-writing mock so the flow still runs with no GitHub access.
         pr_backend = (GitHubBackend() if os.environ.get("GITHUB_TOKEN")
                       else MockGitBackend("eval/prs"))
+        # Model Armor guardrail (real REST calls, deterministic backstop) — the hub project
+        # holds the template; falls back to markers if the service/creds are unavailable.
+        guardrail = g.ModelArmorAdapter(
+            project=hub,
+            location=os.environ.get("CLOUDCAP_MODELARMOR_LOCATION", "us-central1"),
+            template_id=os.environ.get("CLOUDCAP_MODELARMOR_TEMPLATE", "cloudcap-guard"))
         return FleetContext(
             memory=memory,
-            guardrail=m.MockGuardrail(),                       # Model Armor: next
+            guardrail=guardrail,                               # REAL Model Armor (+ backstop)
             gateway=g.AgentGatewayAdapter(project=project),    # REAL cost + security + IAM
             registry=m.MockRegistry(),
             identity=m.MockIdentity(),

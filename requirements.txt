@@ -13,6 +13,7 @@ google-cloud-recommender>=2.15   # cost recommendations
 google-cloud-monitoring>=2.20    # Cloud Run utilization (usage-based cost)
 google-cloud-run>=0.10           # Cloud Run service config (min-instances)
 google-cloud-asset>=3.25         # Asset Inventory (security posture)
+google-cloud-storage>=2.16       # object metadata (tool-poisoning probe for Model Armor)
 google-cloud-logging>=3.10       # immutable audit sink
 google-cloud-resource-manager>=1.12  # project discovery (onboarding)
 

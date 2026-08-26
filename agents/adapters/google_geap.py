@@ -18,6 +18,7 @@ Pillar mapping:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from contextlib import contextmanager
@@ -59,22 +60,83 @@ class MemoryBankAdapter(MemoryPort):
         return None
 
 
-class ModelArmorAdapter(GuardrailPort):
-    """Model Armor — inline guardrails against prompt injection / tool poisoning / PII."""
+# Deterministic backstop markers — used when Model Armor is unreachable so the
+# security screen NEVER silently fails open. Mirrors the mock's markers.
+_INJECTION_BACKSTOP = ("ignore prior", "ignore your", "ignore all previous",
+                       "system:", "exfiltrate", "email all", "disregard", "override your")
 
-    def __init__(self, project: str, location: str, template_id: str):
+
+class ModelArmorAdapter(GuardrailPort):
+    """Model Armor — inline guardrails against prompt injection / tool poisoning / PII.
+
+    Calls the Model Armor REST API (sanitizeUserPrompt / sanitizeModelResponse) against a
+    template with PI-&-jailbreak + malicious-URI filters. If the service is unreachable it
+    degrades to a deterministic marker check — the security screen fails CLOSED on a real
+    injection, never silently open. Read-only: it inspects text, it never acts on it."""
+
+    def __init__(self, project: str, location: str = "us-central1",
+                 template_id: str = "cloudcap-guard"):
         self.project = project
         self.location = location
-        self.template_id = template_id  # sanitization template with PI + DLP filters
-        # TODO(D8): init Model Armor client (modelarmor.v1).
+        self.template_id = template_id
+        self._base = f"https://modelarmor.{location}.rep.googleapis.com/v1"
+        self._creds = None
+
+    def _token(self) -> str:
+        import google.auth
+        import google.auth.transport.requests
+        if self._creds is None:
+            self._creds, _ = google.auth.default(
+                scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        if not self._creds.valid:
+            self._creds.refresh(google.auth.transport.requests.Request())
+        return self._creds.token
+
+    def _sanitize(self, method: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+        """POST to :sanitizeUserPrompt / :sanitizeModelResponse. Returns the parsed
+        sanitizationResult, or None on any transport/auth error (→ caller backstops)."""
+        import json as _json
+        import urllib.request
+        url = (f"{self._base}/projects/{self.project}/locations/{self.location}"
+               f"/templates/{self.template_id}:{method}")
+        req = urllib.request.Request(url, data=_json.dumps(payload).encode(), method="POST",
+                                     headers={"Authorization": f"Bearer {self._token()}",
+                                              "Content-Type": "application/json",
+                                              "x-goog-user-project": self.project})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return _json.load(r).get("sanitizationResult")
 
     async def inspect_input(self, text: str, context: str = "") -> GuardResult:
-        # TODO(D8): sanitizeUserPrompt -> block on prompt_injection / jailbreak.
-        # The chaos-env poison_bait object must be BLOCKED here.
+        if not text or not text.strip():
+            return GuardResult(allowed=True)
+        try:
+            res = await asyncio.to_thread(
+                self._sanitize, "sanitizeUserPrompt", {"userPromptData": {"text": text}})
+            if res is not None:
+                if res.get("filterMatchState") == "MATCH_FOUND":
+                    hits = ", ".join(sorted(res.get("filterResults", {}).keys())) or "prompt-injection"
+                    return GuardResult(allowed=False,
+                                       reason=f"Model Armor blocked untrusted input ({hits})")
+                return GuardResult(allowed=True)
+        except Exception:
+            pass  # fall through to the deterministic backstop
+        low = text.lower()
+        if any(m in low for m in _INJECTION_BACKSTOP):
+            return GuardResult(allowed=False,
+                               reason="prompt-injection / tool-poisoning detected (deterministic backstop)")
         return GuardResult(allowed=True)
 
     async def inspect_output(self, text: str) -> GuardResult:
-        # TODO(D8): sanitizeModelResponse -> redact PII/secrets before boundary exit.
+        if not text or not text.strip():
+            return GuardResult(allowed=True, redacted_text=text)
+        try:
+            res = await asyncio.to_thread(
+                self._sanitize, "sanitizeModelResponse", {"modelResponseData": {"text": text}})
+            if res is not None and res.get("filterMatchState") == "MATCH_FOUND":
+                return GuardResult(allowed=False, redacted_text=None,
+                                   reason="Model Armor flagged model output (PII/secret/unsafe)")
+        except Exception:
+            pass
         return GuardResult(allowed=True, redacted_text=text)
 
 
@@ -150,9 +212,41 @@ class AgentGatewayAdapter(GatewayPort):
             return {"items": self._security_findings(project)}
         if tool == "iam.findings":
             return {"items": self._iam_findings(project)}
-        # monitoring.timeseries, storage.object_metadata (tool-poisoning probe) — wired
-        # next. Fail safe so live mode always runs and returns what IS wired today.
-        return {"items": []} if tool != "storage.object_metadata" else {}
+        if tool == "storage.object_metadata":
+            # Untrusted object metadata the security agent would ingest — screened by
+            # Model Armor before the model ever sees it (tool-poisoning defense).
+            return self._object_metadata(project)
+        # monitoring.timeseries — wired next; fail safe so live mode always runs.
+        return {"items": []}
+
+    def _object_metadata(self, project: str) -> dict[str, Any]:
+        """Return one object's name + (small) content from the project's buckets — the
+        untrusted metadata a security agent would ingest. Read-only (objectViewer). An
+        attacker can plant an object whose NAME or CONTENT is a prompt injection; the
+        guardrail (Model Armor) screens this return value before the model sees it."""
+        try:
+            from google.cloud import storage
+        except Exception:
+            return {}
+        try:
+            client = storage.Client(project=project)
+            buckets = list(client.list_buckets())
+        except Exception:
+            return {}
+        for b in buckets:
+            try:
+                for obj in client.list_blobs(b.name, max_results=25):
+                    content = ""
+                    try:
+                        if (obj.size or 0) <= 8192 and (obj.content_type or "").startswith(("text", "application/json", "")):
+                            content = obj.download_as_text()[:2000]
+                    except Exception:
+                        content = ""
+                    # First object is enough — the agent ingests whatever metadata it finds.
+                    return {"name": obj.name, "content": content, "bucket": b.name}
+            except Exception:
+                continue
+        return {}
 
     def _cost_recommendations(self, project: str) -> list[dict[str, Any]]:
         try:
