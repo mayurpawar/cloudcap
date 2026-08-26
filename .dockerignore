@@ -1,0 +1,27 @@
+# Keep the build context small + don't bake local state into the image.
+# Deployed app uses Firestore (CLOUDCAP_STORE=firestore), so eval/*.json state is moot;
+# but ground_truth.json IS read at runtime, so keep it.
+__pycache__/
+*.pyc
+.git/
+.terraform/
+terraform/**/.terraform/
+terraform/**/*.tfstate*
+terraform/**/terraform.tfvars
+
+# Local mutable state (regenerated / from Firestore on deploy)
+eval/onboarding.json
+eval/*_state.json
+eval/freezes.json
+eval/project_settings.json
+eval/suppressions.json
+eval/findings_history.json
+eval/audit_log.jsonl
+eval/memory_state.json
+eval/last_findings.json
+eval/prs/
+eval/tickets/
+
+# Scratch
+*.log
+.DS_Store

@@ -1,0 +1,26 @@
+# Copy to terraform.tfvars and fill in. `terraform apply` is run ONCE by an admin
+# with Owner/Editor on the hub project (the BOOTSTRAP identity).
+
+hub_project_id = "your-hub-project"          # where CloudCap is deployed (one per org)
+region         = "us-central1"
+
+# Container image (build + push first — see README step 2).
+image = "us-central1-docker.pkg.dev/your-hub-project/cloudcap/app:v1"
+
+# Dashboard admins + auth. firebase | oidc | proxy | dev.
+admin_emails   = ["you@example.com"]
+auth_provider  = "firebase"
+gemini_enabled = true
+gemini_model   = "gemini-3.7-flash"          # must be Gemini 3.5+ (served from the global endpoint)
+
+firestore_location = "nam5"
+
+# --- Scan scope (WHERE read-only access is granted). Pick ONE; org > folder > projects.
+# org_id    = "123456789012"                 # whole-org hub (new projects auto-covered)
+# folder_id = "folders/1001"                 # a folder
+scan_project_ids = ["your-hub-project", "your-audited-project"]  # explicit projects (start small)
+scan_mode        = "live"                    # live | mock
+scan_target      = "your-audited-project"    # the project the hub scans by default
+
+# Projects to show in discovery (Browser/metadata only). Useful for no-org accounts.
+discover_project_ids = ["your-hub-project", "your-audited-project"]

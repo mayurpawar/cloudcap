@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cloudcap"
+version = "0.1.0"
+description = "Governed multi-agent cloud cost & security governance fleet (All Things Agentic Hackathon)"
+requires-python = ">=3.10"
+dependencies = []  # mock mode needs nothing beyond stdlib
+
+[project.optional-dependencies]
+# Live mode (D5-D10). Pin exact versions against current GEAP/Vertex docs.
+live = [
+    "google-adk",
+    "google-cloud-recommender",
+    "google-cloud-asset",
+    "google-cloud-logging",
+    "google-cloud-monitoring",
+    "google-cloud-storage",
+]
+
+[tool.setuptools.packages.find]
+include = ["agents*", "eval*"]

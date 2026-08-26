@@ -1,0 +1,20 @@
+# CloudCap runtime deps. Mock mode runs on the Python STDLIB alone — these enable
+# live GCP data, Gemini reasoning, and enterprise auth. Pinned loosely for the hackathon.
+
+# Auth (dashboard users)
+firebase-admin>=6.5           # Firebase Auth provider
+pyjwt[crypto]>=2.8            # OIDC provider (Entra ID / Okta / Workspace)
+
+# Reasoning
+google-genai>=0.3            # Gemini on Vertex AI (the orchestrator's reasoner)
+
+# Live data plane (read-only)
+google-cloud-recommender>=2.15   # cost recommendations
+google-cloud-monitoring>=2.20    # Cloud Run utilization (usage-based cost)
+google-cloud-run>=0.10           # Cloud Run service config (min-instances)
+google-cloud-asset>=3.25         # Asset Inventory (security posture)
+google-cloud-logging>=3.10       # immutable audit sink
+google-cloud-resource-manager>=1.12  # project discovery (onboarding)
+
+# Durable state (deployed): Firestore. Local/dev uses eval/*.json (no dep).
+google-cloud-firestore>=2.16

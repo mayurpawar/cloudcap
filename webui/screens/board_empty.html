@@ -1,0 +1,239 @@
+<!DOCTYPE html><html class="h-full" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CloudCap - Board (Empty State)</title>
+<link href="https://fonts.googleapis.com/css2?family=Literata:wght@400;700&amp;family=Nunito+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#002110",
+                        "error": "#b83230",
+                        "tertiary": "#705c30",
+                        "primary-fixed": "#c8e8d0",
+                        "on-tertiary-container": "#554020",
+                        "primary-container": "#78a886",
+                        "tertiary-fixed-dim": "#dcc48e",
+                        "surface-dim": "#dbd7cf",
+                        "on-surface-variant": "#4a4e4a",
+                        "primary": "#4a7c59",
+                        "error-container": "#ffdad8",
+                        "surface-bright": "#faf6f0",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#554020",
+                        "outline-variant": "#c4c8bc",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#8ecf9e",
+                        "outline": "#74796e",
+                        "on-surface": "#2e3230",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#4a4538",
+                        "tertiary-fixed": "#f8e0a8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#5e5548",
+                        "on-primary-container": "#d8f0de",
+                        "secondary-container": "#f0e8db",
+                        "inverse-surface": "#2e3230",
+                        "secondary-fixed": "#f0e8db",
+                        "surface-container-low": "#f5f1ea",
+                        "secondary-fixed-dim": "#d4ccbf",
+                        "primary-fixed-dim": "#8ecf9e",
+                        "surface": "#faf6f0",
+                        "surface-container-highest": "#e4e0d8",
+                        "surface-container-high": "#eae6de",
+                        "on-error": "#ffffff",
+                        "on-background": "#2e3230",
+                        "on-tertiary-fixed": "#221a05",
+                        "surface-container": "#f0ece4",
+                        "tertiary-container": "#c4a66a",
+                        "on-error-container": "#690005",
+                        "background": "#faf6f0",
+                        "on-secondary-fixed": "#1e1a13",
+                        "secondary": "#6b6358",
+                        "on-primary-fixed-variant": "#2a6038",
+                        "surface-variant": "#e4e0d8",
+                        "surface-tint": "#4a7c59"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Literata", "serif"],
+                        "display": ["Literata", "serif"],
+                        "body": ["Nunito Sans", "sans-serif"],
+                        "label": ["Nunito Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface font-body text-on-surface h-full flex antialiased">
+<!-- SideNavBar (Hidden on Mobile, Visible on md+) -->
+<nav class="hidden md:flex w-64 h-screen fixed left-0 top-0 z-50 flex-col bg-surface-container dark:bg-surface-container-low py-6 justify-between">
+<div class="px-6 pb-6 border-b border-outline-variant/30">
+<h1 class="font-headline font-bold text-2xl text-primary dark:text-primary-fixed-dim">CloudCap</h1>
+
+<button class="mt-6 w-full py-2 px-4 bg-primary text-on-primary rounded-lg font-bold text-sm hover:opacity-90 transition-opacity">
+                New Initiative
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto py-4">
+<ul class="space-y-1">
+<li class="">
+<!-- Active State -->
+<a class="flex items-center gap-3 px-4 py-3 mx-2 bg-primary-container dark:bg-primary-fixed text-on-primary-container dark:text-on-primary-fixed-variant rounded-lg font-body text-sm font-medium" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                        Board
+                    </a>
+</li>
+<li class="">
+<!-- Inactive State -->
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant dark:text-outline-variant hover:bg-secondary-container/50 dark:hover:bg-secondary-fixed-dim/20 transition-all rounded-lg font-body text-sm font-medium hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">database</span>
+                        Sources
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant dark:text-outline-variant hover:bg-secondary-container/50 dark:hover:bg-secondary-fixed-dim/20 transition-all rounded-lg font-body text-sm font-medium hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">extension</span>
+                        Integrations
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant dark:text-outline-variant hover:bg-secondary-container/50 dark:hover:bg-secondary-fixed-dim/20 transition-all rounded-lg font-body text-sm font-medium hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+                        Compliance
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant dark:text-outline-variant hover:bg-secondary-container/50 dark:hover:bg-secondary-fixed-dim/20 transition-all rounded-lg font-body text-sm font-medium hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">gavel</span>
+                        Policy
+                    </a>
+</li>
+</ul>
+</div>
+<div class="px-4 pt-4 border-t border-outline-variant/30">
+<ul class="space-y-1">
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant dark:text-outline-variant hover:bg-secondary-container/50 dark:hover:bg-secondary-fixed-dim/20 transition-all rounded-lg font-body text-sm font-medium hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+                        Support
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 text-on-surface-variant dark:text-outline-variant hover:bg-secondary-container/50 dark:hover:bg-secondary-fixed-dim/20 transition-all rounded-lg font-body text-sm font-medium hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+                        Sign Out
+                    </a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar (Visible on Mobile) -->
+<header class="w-full h-16 bg-surface dark:bg-surface-dim flex items-center justify-between px-6 z-40 bg-surface-container-low dark:bg-surface-container-lowest shadow-sm fixed top-0 left-0 max-w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">menu</span>
+<span class="font-headline font-bold text-xl text-primary dark:text-primary-fixed-dim">CloudCap</span>
+</div>
+<div class="flex items-center gap-4 text-primary dark:text-primary-fixed-dim"><div class="flex items-center gap-4 ml-2"><div class="flex flex-col items-end md:flex"><span class="font-body leading-relaxed text-sm font-bold text-on-surface dark:text-on-surface-variant">Alex Rivera</span><span class="font-body leading-relaxed text-xs text-on-surface-variant dark:text-outline">Admin</span></div><div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary-container"><img alt="Alex Rivera, Admin role" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjVu6d3PqfwIQcTdEaFppgEHBM8OS4fMGxICxgUTtvJKP1vsfx2_0msIr8Mov9sYv_GLheli9aJ_TG334pOmpMuhZc0bp9GzeiGkCkFsBdCH5zzWkOlhVlD6j_qD2dRiKw6G81K42wX_Ky6daLla6FVtq9tCbrRTdIY8nr3xukMLNVwm4BX7lpaq50--d_3E1H0n5LSHavCWNBlI5vLp3zQgSX44M4U4NGO1UOhTt0g9XxSVocs84H"></div></div></div>
+</header>
+<!-- Page Content -->
+<div class="p-6 md:p-10 mt-16 md:mt-0 flex-1 overflow-y-auto max-w-7xl mx-auto w-full">
+<!-- Hero Section -->
+<div class="bg-surface-bright rounded-xl p-8 mb-10 shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/20 flex flex-col md:flex-row items-center gap-8">
+<div class="flex-1">
+<h2 class="font-headline text-3xl font-bold text-on-surface mb-4">Welcome to CloudCap, Alex.</h2>
+<p class="font-body text-lg text-on-surface-variant mb-6 leading-relaxed max-w-2xl">
+                        Your workspace is ready. CloudCap helps you visualize and manage your infrastructure securely and organically. Let's root out vulnerabilities and cultivate a stronger environment.
+                    </p>
+<button class="bg-primary hover:bg-surface-tint text-on-primary font-bold py-3 px-6 rounded-xl transition-colors shadow-sm flex items-center gap-2 text-lg group">
+                        Run First Scan
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<div class="hidden lg:block w-1/3">
+<img alt="Illustration of growth" class="w-full h-auto object-contain mix-blend-multiply opacity-90" data-alt="A soft, friendly illustration in an earthy, organic style showing a person planting a small digital tree or seedling. The color palette uses warm creams, forest greens, and amber accents. The shapes are rounded and inviting, conveying growth and security." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-BbLwbYHuS84So3X1oJqpmkK3XAcg7wmrseMH16BHMNvHNl5oMaG2vhQ-EbUGFTSRmrPyvGkmnl9x4ywiT9wmWTj9pwXUmw7KaaoXpAgY13G5RZ_dm-45Pd4s4rnXQ2x0sFh58QzDZ4IfHpqbHsdOzio5kvtDe7H10S4gOr2YbVZYWbT-yLkmsG_MM77NdDdYuqh17tHo7dFj6V4bfdZBH1RtrmZ5OanAsTiIVcXQiMm67saM45Ti">
+</div>
+</div>
+<!-- KPI Cards (Empty State) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+<!-- KPI 1 -->
+<div class="bg-surface-bright rounded-xl p-6 shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/20 relative group">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-body font-semibold text-on-surface-variant">Recall</h3>
+<span class="material-symbols-outlined text-outline-variant/50 cursor-help" title="No data yet. Run a scan to see your recall rate.">info</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold text-outline-variant">--</span>
+<span class="text-sm text-outline-variant">%</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-bright rounded-xl p-6 shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/20 relative group">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-body font-semibold text-on-surface-variant">Precision</h3>
+<span class="material-symbols-outlined text-outline-variant/50 cursor-help" title="No data yet. Run a scan to calculate precision.">info</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold text-outline-variant">--</span>
+<span class="text-sm text-outline-variant">%</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-bright rounded-xl p-6 shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/20 relative group">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-body font-semibold text-on-surface-variant">Waste</h3>
+<span class="material-symbols-outlined text-outline-variant/50 cursor-help" title="No data yet. Uncover inefficiencies after your first scan.">info</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold text-outline-variant">$0</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-bright rounded-xl p-6 shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/20 relative group">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-body font-semibold text-on-surface-variant">ClickOps</h3>
+<span class="material-symbols-outlined text-outline-variant/50 cursor-help" title="No data yet. Track manual interventions here.">info</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold text-outline-variant">0</span>
+<span class="text-sm text-outline-variant">Events</span>
+</div>
+</div>
+</div>
+<!-- Empty Findings Area (Bento Grid Style) -->
+<div class="bg-surface-container rounded-xl p-8 border border-outline-variant/10 text-center flex flex-col items-center justify-center min-h-[400px]">
+<div class="w-48 h-48 mb-6 opacity-60">
+<img alt="Empty state illustration" class="w-full h-full object-contain" data-alt="A minimalist, earthy illustration of an empty wooden desk or a clear calm pond. The style is warm, organic, and uncluttered, using soft shapes and a palette of creams, desaturated greens, and gentle ambers to signify a state of peace and readiness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4c0qYW-IZtj0GkZy1oQXPWtmFNGX9Lyf0-DjoWponGLv6ogLCjpfkAHSzfqOuBlH7xoZH0FBq8WovguYRZ1yBFKmaDzu60r1RbgbEfe2xldZV2RmTZ2AyAnrM0_-CsQq2q0_yWWuwjgTdiIpN9_MV2Kk_og3XhLduO3ZM9IMTB1Jsk-L_Ivq3GonYbCb0fbdefq_FNa9i597OZWF4ouiAIFe0TBmtxNP3WJtGb0PHqEDSHOoHmSPS">
+</div>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-2">No Findings Yet</h3>
+<p class="font-body text-on-surface-variant max-w-md mx-auto mb-8">
+                    Your environment is currently a blank slate. Connect a source or run your first scan to populate this board with actionable insights.
+                </p>
+<div class="flex gap-4">
+<button class="bg-surface-bright text-primary border border-primary font-bold py-2 px-6 rounded-xl hover:bg-primary-container/20 transition-colors shadow-sm">
+                        Connect Source
+                    </button>
+<button class="bg-primary hover:bg-surface-tint text-on-primary font-bold py-2 px-6 rounded-xl transition-colors shadow-sm">
+                        Run Scan
+                    </button>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

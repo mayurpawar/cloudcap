@@ -1,0 +1,24 @@
+# What NOT to upload to Cloud Build. Keep source + Dockerfile + requirements +
+# webui/screens + firebase_web.json + eval/ground_truth.json.
+.git/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+.terraform/
+terraform/**/.terraform/
+terraform/**/*.tfstate*
+terraform/**/terraform.tfvars
+
+# local mutable state (comes from Firestore on deploy)
+eval/onboarding.json
+eval/*_state.json
+eval/freezes.json
+eval/project_settings.json
+eval/suppressions.json
+eval/findings_history.json
+eval/audit_log.jsonl
+eval/memory_state.json
+eval/last_findings.json
+eval/prs/
+eval/tickets/

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CloudCap Integrations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..900&amp;family=Nunito+Sans:opsz,wght@6..12,400..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#d8f0de",
+                        "on-secondary-container": "#5e5548",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#4a4538",
+                        "tertiary": "#705c30",
+                        "primary-fixed": "#c8e8d0",
+                        "error": "#b83230",
+                        "surface-variant": "#e4e0d8",
+                        "surface": "#faf6f0",
+                        "on-tertiary-container": "#554020",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#690005",
+                        "on-tertiary-fixed": "#221a05",
+                        "on-surface": "#2e3230",
+                        "tertiary-container": "#c4a66a",
+                        "secondary-fixed-dim": "#d4ccbf",
+                        "on-secondary-fixed": "#1e1a13",
+                        "outline": "#74796e",
+                        "surface-tint": "#4a7c59",
+                        "surface-container-highest": "#e4e0d8",
+                        "on-background": "#2e3230",
+                        "surface-dim": "#dbd7cf",
+                        "tertiary-fixed-dim": "#dcc48e",
+                        "primary-fixed-dim": "#8ecf9e",
+                        "inverse-surface": "#2e3230",
+                        "error-container": "#ffdad8",
+                        "primary": "#4a7c59",
+                        "on-surface-variant": "#4a4e4a",
+                        "secondary-fixed": "#f0e8db",
+                        "background": "#faf6f0",
+                        "primary-container": "#78a886",
+                        "surface-container-high": "#eae6de",
+                        "on-primary-fixed": "#002110",
+                        "secondary": "#6b6358",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c4c8bc",
+                        "inverse-primary": "#8ecf9e",
+                        "inverse-on-surface": "#f5f0e8",
+                        "tertiary-fixed": "#f8e0a8",
+                        "surface-bright": "#faf6f0",
+                        "on-tertiary-fixed-variant": "#554020",
+                        "on-primary-fixed-variant": "#2a6038",
+                        "surface-container": "#f0ece4",
+                        "surface-container-low": "#f5f1ea",
+                        "secondary-container": "#f0e8db",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["Literata", "serif"],
+                        "display": ["Literata", "serif"],
+                        "body": ["Nunito Sans", "sans-serif"],
+                        "label": ["Nunito Sans", "sans-serif"]
+                    },
+                    "fontSize": {}
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Nunito Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-headline { font-family: 'Literata', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background text-on-background flex h-screen overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (from JSON) -->
+<nav class="hidden md:flex flex-col h-full border-r border-outline-variant/20 bg-surface-container-low w-64 shrink-0 shadow-[4px_0_24px_rgba(46,50,48,0.02)] z-10">
+<div class="p-6 pb-2 border-b border-outline-variant/10">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary text-3xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">cloud</span>
+<span class="font-headline text-primary font-black text-xl tracking-tight">CloudCap</span>
+</div>
+<h2 class="font-body text-label-lg font-bold text-on-surface">Governance Control</h2>
+<p class="text-xs text-on-surface-variant mt-1">Fortified Enterprise Fleet</p>
+</div>
+<div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+<!-- Board (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-variant transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
+<span class="font-body text-label-lg font-medium">Board</span>
+</a>
+<!-- Sources (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-variant transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">database</span>
+<span class="font-body text-label-lg font-medium">Sources</span>
+</a>
+<!-- Integrations (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg font-bold transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">extension</span>
+<span class="font-body text-label-lg">Integrations</span>
+</a>
+<!-- Compliance (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-variant transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">verified_user</span>
+<span class="font-body text-label-lg font-medium">Compliance</span>
+</a>
+<!-- Policy (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-variant transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">gavel</span>
+<span class="font-body text-label-lg font-medium">Policy</span>
+</a>
+</div>
+<div class="p-4 border-t border-outline-variant/10">
+<button class="w-full bg-surface-container border border-outline-variant text-primary rounded-xl py-2.5 font-bold hover:bg-surface-variant transition-colors flex items-center justify-center gap-2 mb-4">
+<span class="material-symbols-outlined text-sm">radar</span>
+                Scan Scope
+            </button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-base">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-base">description</span>
+                    Docs
+                </a>
+</div>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="flex-1 h-full overflow-y-auto bg-surface-bright relative">
+<!-- Soft decorative background gradient -->
+<div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-surface-container-lowest to-transparent pointer-events-none opacity-50"></div>
+<div class="max-w-7xl mx-auto p-6 md:p-10 lg:p-12 relative z-10">
+<!-- Header Section -->
+<header class="mb-10"><div class="flex items-center justify-end gap-6 mb-8 pb-6 border-b border-outline-variant/10"><div class="flex items-center gap-3 pl-2"><div class="text-right"><p class="text-sm font-bold text-on-surface">Alex Rivera</p><button class="flex items-center gap-1 text-[10px] font-black tracking-widest uppercase text-primary hover:bg-primary/5 px-1 rounded transition-colors">Admin <span class="material-symbols-outlined text-[12px]">expand_more</span></button></div><div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold border-2 border-surface-bright shadow-sm">AR</div></div></div>
+<h1 class="font-headline text-3xl md:text-4xl font-bold text-on-surface tracking-tight mb-2">INTEGRATIONS &amp; HEALTH</h1>
+<p class="text-on-surface-variant text-lg font-medium mb-8 max-w-3xl">Configure endpoints; tokens go to Secret Manager; Test probes live access.</p>
+<button class="bg-primary text-on-primary hover:bg-surface-tint shadow-[0_4px_20px_rgba(74,124,89,0.2)] px-8 py-3.5 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined">bolt</span>
+                    Test all
+                </button>
+</header>
+<!-- Cards Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+<!-- GCP Card -->
+<article class="bg-surface rounded-2xl p-6 md:p-8 border border-outline-variant/40 shadow-[0_4px_20px_rgba(46,50,48,0.03)] hover:shadow-[0_8px_30px_rgba(46,50,48,0.06)] transition-shadow">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface">GCP scan scope</h3>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary-container/30 text-primary border border-primary/20">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                            HEALTHY
+                        </span>
+</div>
+<div class="space-y-5">
+<label class="flex items-center gap-3 cursor-pointer">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface bg-surface-container" type="checkbox"/>
+<span class="font-medium text-on-surface">enabled</span>
+</label>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">Org / folder ID</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="text" value="folders/1001"/>
+</div>
+<p class="text-xs text-on-surface-variant/80">listed 5 projects in scope · last checked 19:26:45</p>
+<div class="flex gap-3 pt-2">
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Save</button>
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Test</button>
+</div>
+</div>
+</article>
+<!-- IaC Card -->
+<article class="bg-surface rounded-2xl p-6 md:p-8 border border-outline-variant/40 shadow-[0_4px_20px_rgba(46,50,48,0.03)] hover:shadow-[0_8px_30px_rgba(46,50,48,0.06)] transition-shadow">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface">IaC state backends</h3>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-tertiary-container/30 text-tertiary border border-tertiary/20">
+<span class="material-symbols-outlined text-[14px]">help</span>
+                            UNTESTED
+                        </span>
+</div>
+<div class="space-y-5">
+<label class="flex items-center gap-3 cursor-pointer">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface bg-surface-container" type="checkbox"/>
+<span class="font-medium text-on-surface">enabled</span>
+</label>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">State backend (GCS / TF Cloud)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="text" value="gs://acme-tfstate"/>
+</div>
+<div class="flex gap-3 pt-6">
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Save</button>
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Test</button>
+</div>
+</div>
+</article>
+<!-- GitHub Card -->
+<article class="bg-surface rounded-2xl p-6 md:p-8 border border-outline-variant/40 shadow-[0_4px_20px_rgba(46,50,48,0.03)] hover:shadow-[0_8px_30px_rgba(46,50,48,0.06)] transition-shadow">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface">GitHub (Pull Requests)</h3>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-error-container/30 text-error border border-error/20">
+<span class="material-symbols-outlined text-[14px]">close</span>
+                            FAILING
+                        </span>
+</div>
+<div class="space-y-5">
+<label class="flex items-center gap-3 cursor-pointer">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface bg-surface-container" type="checkbox"/>
+<span class="font-medium text-on-surface">enabled</span>
+</label>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">Host</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="text" value="github.com"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">Org</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="text" value="acme"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">Token / App key (→ Secret Manager)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none font-mono tracking-widest text-on-surface-variant" type="password" value="*************************"/>
+</div>
+<p class="text-xs text-error/80 font-medium">missing: token · last checked 19:26:53</p>
+<div class="flex gap-3 pt-2">
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Save</button>
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Test</button>
+</div>
+</div>
+</article>
+<!-- Jira Card -->
+<article class="bg-surface rounded-2xl p-6 md:p-8 border border-outline-variant/40 shadow-[0_4px_20px_rgba(46,50,48,0.03)] hover:shadow-[0_8px_30px_rgba(46,50,48,0.06)] transition-shadow opacity-80 hover:opacity-100 transition-opacity">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface">Jira (fallback tickets)</h3>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-tertiary-container/30 text-tertiary border border-tertiary/20">
+<span class="material-symbols-outlined text-[14px]">help</span>
+                            UNTESTED
+                        </span>
+</div>
+<div class="space-y-5">
+<label class="flex items-center gap-3 cursor-pointer">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface bg-surface-container" type="checkbox"/>
+<span class="font-medium text-on-surface">enabled</span>
+</label>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">Base URL</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none placeholder:text-outline/40" placeholder="https://acme.atlassian.net" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">Project key</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none placeholder:text-outline/40" placeholder="SEC" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-on-surface-variant mb-1.5">API token (→ Secret Manager)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="password"/>
+</div>
+<div class="flex gap-3 pt-6">
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Save</button>
+<button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Test</button>
+</div>
+</div>
+</article>
+<!-- Slack Card -->
+<article class="bg-surface rounded-2xl p-6 md:p-8 border border-outline-variant/40 shadow-[0_4px_20px_rgba(46,50,48,0.03)] hover:shadow-[0_8px_30px_rgba(46,50,48,0.06)] transition-shadow opacity-80 hover:opacity-100 transition-opacity xl:col-span-2"><div class="flex justify-between items-start mb-6"><h3 class="font-headline text-xl font-bold text-on-surface opacity-50">Slack (notifications)</h3><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-surface-container-highest text-on-surface-variant border border-outline-variant/20"><span class="material-symbols-outlined text-[14px]">block</span> DISABLED</span></div><div class="space-y-5 max-w-2xl opacity-50 pointer-events-none"><label class="flex items-center gap-3 cursor-pointer"><input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface bg-surface-container" type="checkbox"/><span class="font-medium text-on-surface">enabled</span></label><div><label class="block text-sm font-medium text-on-surface-variant mb-1.5">Channel</label><input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="text" value="#cloudcap-alerts"/></div><div><label class="block text-sm font-medium text-on-surface-variant mb-1.5">Bot token (→ Secret Manager)</label><input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-inner outline-none" type="password"/></div><div class="flex gap-3 pt-6"><button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Save</button><button class="bg-surface-container border border-outline-variant/60 text-primary hover:bg-surface-container-high px-5 py-2 rounded-lg font-bold transition-colors text-sm">Test</button></div></div></article>
+</div>
+</div>
+</main>
+</body></html>

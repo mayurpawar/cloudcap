@@ -1,0 +1,349 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CloudCap - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..900&amp;family=Nunito+Sans:opsz,wght@6..12,400..800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#002110",
+                        "error": "#b83230",
+                        "tertiary": "#705c30",
+                        "primary-fixed": "#c8e8d0",
+                        "on-tertiary-container": "#554020",
+                        "primary-container": "#78a886",
+                        "tertiary-fixed-dim": "#dcc48e",
+                        "surface-dim": "#dbd7cf",
+                        "on-surface-variant": "#4a4e4a",
+                        "primary": "#4a7c59",
+                        "error-container": "#ffdad8",
+                        "surface-bright": "#faf6f0",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#554020",
+                        "outline-variant": "#c4c8bc",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#8ecf9e",
+                        "outline": "#74796e",
+                        "on-surface": "#2e3230",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#4a4538",
+                        "tertiary-fixed": "#f8e0a8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#5e5548",
+                        "on-primary-container": "#d8f0de",
+                        "secondary-container": "#f0e8db",
+                        "inverse-surface": "#2e3230",
+                        "secondary-fixed": "#f0e8db",
+                        "surface-container-low": "#f5f1ea",
+                        "secondary-fixed-dim": "#d4ccbf",
+                        "primary-fixed-dim": "#8ecf9e",
+                        "surface": "#faf6f0",
+                        "surface-container-highest": "#e4e0d8",
+                        "surface-container-high": "#eae6de",
+                        "on-error": "#ffffff",
+                        "on-background": "#2e3230",
+                        "on-tertiary-fixed": "#221a05",
+                        "surface-container": "#f0ece4",
+                        "tertiary-container": "#c4a66a",
+                        "on-error-container": "#690005",
+                        "background": "#faf6f0",
+                        "on-secondary-fixed": "#1e1a13",
+                        "secondary": "#6b6358",
+                        "on-primary-fixed-variant": "#2a6038",
+                        "surface-variant": "#e4e0d8",
+                        "surface-tint": "#4a7c59"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Literata", "serif"],
+                        "display": ["Literata", "serif"],
+                        "body": ["Nunito Sans", "sans-serif"],
+                        "label": ["Nunito Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); color: theme('colors.on-background'); }
+        .step-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hidden-step { opacity: 0; transform: translateY(20px); pointer-events: none; position: absolute; top: 0; left: 0; width: 100%; visibility: hidden;}
+        .active-step { opacity: 1; transform: translateY(0); pointer-events: auto; position: relative; visibility: visible;}
+    </style>
+</head>
+<body class="font-body min-h-screen flex flex-col relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Anchor (Suppressed nav items for onboarding) -->
+<header class="w-full h-16 flex items-center justify-between bg-surface dark:bg-surface-dim shadow-sm bg-surface-container-low dark:bg-surface-container-lowest px-6 max-w-full z-40 fixed top-0 left-0">
+<div class="font-headline font-bold text-xl text-primary dark:text-primary-fixed-dim">CloudCap</div>
+<div class="flex items-center gap-4 ml-auto">
+<div class="flex flex-col items-end hidden md:flex">
+<span class="font-body leading-relaxed text-sm font-bold text-on-surface dark:text-on-surface-variant">Alex Rivera</span>
+<span class="font-body leading-relaxed text-xs text-on-surface-variant dark:text-outline">Admin</span>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary-container">
+<img alt="Alex Rivera, Admin role" class="w-full h-full object-cover" data-alt="A professional headshot of a person, warm studio lighting, neutral background, reflecting an administrative role in a tech company. The overall tone is approachable and competent, matching an organic, earthy visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRWv-dGxk7qta_dEFLD6jXguvQ8OQ75U8fGzIR-dqKUnK1rI36CTkDxs-mKlCHjcmTs804Vzx5kpT2i-6LIfCD9RlcbjjGvr6_2_SSlDzguvJlRrqJlSJz8RCruWVDtCdNnWVOyqpZsHHFb-67-meoU1T4Mn6J1EM3Eug3P8jhoY4O9RyrlAPYp218MhDxE5yUzIVZFSsofNFSizbUzR7jbBR5aG0mz8l7MpYHhX3i5P6DQeDZheb8">
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow pt-24 pb-12 px-4 sm:px-6 flex flex-col items-center justify-center relative">
+<!-- Wizard Container -->
+<div class="w-full max-w-3xl bg-surface-bright rounded-xl shadow-[0_4px_20px_rgba(46,50,48,0.06)] border border-outline-variant/30 overflow-hidden relative">
+<!-- Progress Stepper Header -->
+<div class="bg-surface-container-lowest px-8 py-6 border-b border-outline-variant/20">
+<nav aria-label="Progress">
+<ol class="flex items-center justify-between" role="list">
+<!-- Step 1 Marker -->
+<li class="relative pr-8 sm:pr-20">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="h-0.5 w-full bg-primary" id="line-1"></div>
+</div>
+<button aria-current="step" class="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary hover:bg-primary/90 ring-4 ring-surface-bright transition-colors" id="step-btn-1">
+<span class="material-symbols-outlined text-on-primary text-sm font-bold" data-icon="folder_open">folder_open</span>
+</button>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-bold text-primary whitespace-nowrap">Sources</span>
+</li>
+<!-- Step 2 Marker -->
+<li class="relative pr-8 sm:pr-20">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="h-0.5 w-full bg-surface-container-high transition-colors duration-300" id="line-2"></div>
+</div>
+<button class="relative flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high ring-4 ring-surface-bright transition-colors duration-300" id="step-btn-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm font-bold" data-icon="policy" id="icon-2">policy</span>
+</button>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium text-on-surface-variant whitespace-nowrap" id="label-2">Policies</span>
+</li>
+<!-- Step 3 Marker -->
+<li class="relative">
+<button class="relative flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high ring-4 ring-surface-bright transition-colors duration-300" id="step-btn-3">
+<span class="material-symbols-outlined text-on-surface-variant text-sm font-bold" data-icon="check_circle" id="icon-3">check_circle</span>
+</button>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium text-on-surface-variant whitespace-nowrap" id="label-3">First Scan</span>
+</li>
+</ol>
+</nav>
+</div>
+<!-- Steps Content Container -->
+<div class="relative p-8 min-h-[400px]">
+<!-- STEP 1: Sources -->
+<div class="step-transition active-step flex flex-col h-full" id="step-content-1">
+<div class="mb-6">
+<h2 class="font-headline text-2xl font-bold text-on-surface mb-2">Connect Your Sources</h2>
+<p class="text-on-surface-variant text-sm leading-relaxed">Select the projects and repositories you want CloudCap to scan for compliance and security issues.</p>
+</div>
+<div class="flex-grow bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-4 max-h-[300px] overflow-y-auto custom-scrollbar">
+<ul class="space-y-3">
+<!-- Org Node -->
+<li class="">
+<label class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-container transition-colors cursor-pointer group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary focus:ring-offset-surface-bright w-4 h-4 bg-transparent checked:bg-primary" type="checkbox">
+<span class="material-symbols-outlined text-tertiary" data-icon="domain" style="font-variation-settings: 'FILL' 1;">domain</span>
+<span class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">Acme Corp Global</span>
+</label>
+<!-- Children -->
+<ul class="pl-8 mt-2 space-y-2 border-l-2 border-surface-container-high ml-4">
+<li class="">
+<label class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-container transition-colors cursor-pointer group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary focus:ring-offset-surface-bright w-4 h-4 bg-transparent checked:bg-primary" type="checkbox">
+<span class="material-symbols-outlined text-primary-container" data-icon="folder" style="font-variation-settings: 'FILL' 1;">folder</span>
+<span class="text-on-surface text-sm">Frontend Monorepo</span>
+</label>
+</li>
+<li class="">
+<label class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-container transition-colors cursor-pointer group">
+<input class="rounded border-outline text-primary focus:ring-primary focus:ring-offset-surface-bright w-4 h-4 bg-transparent checked:bg-primary" type="checkbox">
+<span class="material-symbols-outlined text-primary-container" data-icon="folder" style="font-variation-settings: 'FILL' 1;">folder</span>
+<span class="text-on-surface text-sm">Backend Microservices</span>
+</label>
+</li>
+<li class="">
+<label class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-container transition-colors cursor-pointer group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary focus:ring-offset-surface-bright w-4 h-4 bg-transparent checked:bg-primary" type="checkbox">
+<span class="material-symbols-outlined text-primary-container" data-icon="folder" style="font-variation-settings: 'FILL' 1;">folder</span>
+<span class="text-on-surface text-sm">Infrastructure as Code</span>
+</label>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<!-- STEP 2: Policies -->
+<div class="step-transition hidden-step flex flex-col h-full" id="step-content-2">
+<div class="mb-6">
+<h2 class="font-headline text-2xl font-bold text-on-surface mb-2">Define Action Matrix</h2>
+<p class="text-on-surface-variant text-sm leading-relaxed">Configure how CloudCap responds when policy violations are detected during scans.</p>
+</div>
+<div class="grid gap-4">
+<!-- Policy Rule 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-outline-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h3 class="font-bold text-on-surface text-sm flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span> Critical Vulnerabilities
+                                </h3>
+<p class="text-xs text-on-surface-variant mt-1">CVEs with CVSS score &gt; 9.0</p>
+</div>
+<div class="flex gap-2">
+<label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors has-[:checked]:bg-primary has-[:checked]:text-on-primary">
+<input checked="" class="sr-only" type="checkbox">
+<span class="material-symbols-outlined text-[16px]" data-icon="commit">commit</span> Open PR
+                                </label>
+<label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors has-[:checked]:bg-primary has-[:checked]:text-on-primary">
+<input checked="" class="sr-only" type="checkbox">
+<span class="material-symbols-outlined text-[16px]" data-icon="forum">forum</span> Slack Alert
+                                </label>
+</div>
+</div>
+<!-- Policy Rule 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-outline-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h3 class="font-bold text-on-surface text-sm flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> License Violations
+                                </h3>
+<p class="text-xs text-on-surface-variant mt-1">GPL/AGPL in proprietary code</p>
+</div>
+<div class="flex gap-2">
+<label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors has-[:checked]:bg-primary has-[:checked]:text-on-primary">
+<input class="sr-only" type="checkbox">
+<span class="material-symbols-outlined text-[16px]" data-icon="commit">commit</span> Open PR
+                                </label>
+<label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors has-[:checked]:bg-primary has-[:checked]:text-on-primary">
+<input checked="" class="sr-only" type="checkbox">
+<span class="material-symbols-outlined text-[16px]" data-icon="bug_report">bug_report</span> File Issue
+                                </label>
+</div>
+</div>
+</div>
+</div>
+<!-- STEP 3: First Scan -->
+<div class="step-transition hidden-step flex flex-col h-full items-center justify-center text-center py-8" id="step-content-3">
+<div class="w-24 h-24 bg-primary-container rounded-full flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-on-primary-container text-5xl" data-icon="radar" style="font-variation-settings: 'FILL' 1;">radar</span>
+</div>
+<h2 class="font-headline text-3xl font-bold text-on-surface mb-3">Ready to Launch</h2>
+<p class="text-on-surface-variant max-w-md mx-auto mb-8 leading-relaxed">
+                        CloudCap is configured to scan 2 repositories using the defined action matrix. The initial audit may take a few minutes depending on repository size.
+                    </p>
+<div class="bg-surface-container-low rounded-lg p-4 w-full max-w-sm mb-8 flex justify-around border border-outline-variant/20">
+<div class="text-center">
+<div class="font-bold text-2xl text-primary font-headline">2</div>
+<div class="text-xs text-on-surface-variant uppercase tracking-wider mt-1">Sources</div>
+</div>
+<div class="w-px bg-outline-variant/30"></div>
+<div class="text-center">
+<div class="font-bold text-2xl text-tertiary font-headline">5</div>
+<div class="text-xs text-on-surface-variant uppercase tracking-wider mt-1">Policies</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Wizard Footer Actions -->
+<div class="bg-surface px-8 py-4 border-t border-outline-variant/20 flex justify-between items-center rounded-b-xl">
+<button class="px-6 py-2.5 rounded-xl border border-outline text-on-surface font-bold text-sm hover:bg-surface-container-high transition-colors invisible" id="btn-back">
+                    Back
+                </button>
+<button class="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-sm hover:bg-primary/90 transition-colors shadow-sm ml-auto" id="btn-next">
+                    Continue
+                </button>
+<button class="px-8 py-3 rounded-xl bg-primary text-on-primary font-bold text-base hover:bg-primary/90 transition-colors shadow-sm ml-auto hidden flex items-center gap-2" id="btn-finish">
+<span class="material-symbols-outlined text-xl" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span> Start First Audit
+                </button>
+</div>
+</div>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentStep = 1;
+            const totalSteps = 3;
+            
+            const btnNext = document.getElementById('btn-next');
+            const btnBack = document.getElementById('btn-back');
+            const btnFinish = document.getElementById('btn-finish');
+
+            function updateUI() {
+                // Content visibility
+                for(let i=1; i<=totalSteps; i++) {
+                    const content = document.getElementById(`step-content-${i}`);
+                    if(i === currentStep) {
+                        content.classList.remove('hidden-step');
+                        content.classList.add('active-step');
+                    } else {
+                        content.classList.add('hidden-step');
+                        content.classList.remove('active-step');
+                    }
+                }
+
+                // Buttons state
+                if(currentStep === 1) {
+                    btnBack.classList.add('invisible');
+                } else {
+                    btnBack.classList.remove('invisible');
+                }
+
+                if(currentStep === totalSteps) {
+                    btnNext.classList.add('hidden');
+                    btnFinish.classList.remove('hidden');
+                } else {
+                    btnNext.classList.remove('hidden');
+                    btnFinish.classList.add('hidden');
+                }
+
+                // Stepper Visuals (Very basic progression logic for demo)
+                if(currentStep >= 2) {
+                    document.getElementById('step-btn-2').classList.replace('bg-surface-container-high', 'bg-primary');
+                    document.getElementById('icon-2').classList.replace('text-on-surface-variant', 'text-on-primary');
+                    document.getElementById('label-2').classList.replace('text-on-surface-variant', 'text-primary');
+                    document.getElementById('label-2').classList.add('font-bold');
+                    document.getElementById('line-1').classList.add('bg-primary');
+                } else {
+                    document.getElementById('step-btn-2').classList.replace('bg-primary', 'bg-surface-container-high');
+                    document.getElementById('icon-2').classList.replace('text-on-primary', 'text-on-surface-variant');
+                    document.getElementById('label-2').classList.replace('text-primary', 'text-on-surface-variant');
+                    document.getElementById('label-2').classList.remove('font-bold');
+                }
+
+                if(currentStep >= 3) {
+                    document.getElementById('step-btn-3').classList.replace('bg-surface-container-high', 'bg-primary');
+                    document.getElementById('icon-3').classList.replace('text-on-surface-variant', 'text-on-primary');
+                    document.getElementById('label-3').classList.replace('text-on-surface-variant', 'text-primary');
+                    document.getElementById('label-3').classList.add('font-bold');
+                    document.getElementById('line-2').classList.replace('bg-surface-container-high', 'bg-primary');
+                } else {
+                    document.getElementById('step-btn-3').classList.replace('bg-primary', 'bg-surface-container-high');
+                    document.getElementById('icon-3').classList.replace('text-on-primary', 'text-on-surface-variant');
+                    document.getElementById('label-3').classList.replace('text-primary', 'text-on-surface-variant');
+                    document.getElementById('label-3').classList.remove('font-bold');
+                    document.getElementById('line-2').classList.replace('bg-primary', 'bg-surface-container-high');
+                }
+            }
+
+            btnNext.addEventListener('click', () => {
+                if(currentStep < totalSteps) {
+                    currentStep++;
+                    updateUI();
+                }
+            });
+
+            btnBack.addEventListener('click', () => {
+                if(currentStep > 1) {
+                    currentStep--;
+                    updateUI();
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CloudCap Governance - Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#d8f0de",
+                        "on-secondary-container": "#5e5548",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#4a4538",
+                        "tertiary": "#705c30",
+                        "primary-fixed": "#c8e8d0",
+                        "error": "#b83230",
+                        "surface-variant": "#e4e0d8",
+                        "surface": "#faf6f0",
+                        "on-tertiary-container": "#554020",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#690005",
+                        "on-tertiary-fixed": "#221a05",
+                        "on-surface": "#2e3230",
+                        "tertiary-container": "#c4a66a",
+                        "secondary-fixed-dim": "#d4ccbf",
+                        "on-secondary-fixed": "#1e1a13",
+                        "outline": "#74796e",
+                        "surface-tint": "#4a7c59",
+                        "surface-container-highest": "#e4e0d8",
+                        "on-background": "#2e3230",
+                        "surface-dim": "#dbd7cf",
+                        "tertiary-fixed-dim": "#dcc48e",
+                        "primary-fixed-dim": "#8ecf9e",
+                        "inverse-surface": "#2e3230",
+                        "error-container": "#ffdad8",
+                        "primary": "#4a7c59",
+                        "on-surface-variant": "#4a4e4a",
+                        "secondary-fixed": "#f0e8db",
+                        "background": "#faf6f0",
+                        "primary-container": "#78a886",
+                        "surface-container-high": "#eae6de",
+                        "on-primary-fixed": "#002110",
+                        "secondary": "#6b6358",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c4c8bc",
+                        "inverse-primary": "#8ecf9e",
+                        "inverse-on-surface": "#f5f0e8",
+                        "tertiary-fixed": "#f8e0a8",
+                        "surface-bright": "#faf6f0",
+                        "on-tertiary-fixed-variant": "#554020",
+                        "on-primary-fixed-variant": "#2a6038",
+                        "surface-container": "#f0ece4",
+                        "surface-container-low": "#f5f1ea",
+                        "secondary-container": "#f0e8db",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Literata", "serif"],
+                        "display": ["Literata", "serif"],
+                        "body": ["Nunito Sans", "sans-serif"],
+                        "label": ["Nunito Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Nunito Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-headline { font-family: 'Literata', serif; }
+        
+        /* Subtle scrollbar for organic feel */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e4e0d8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c4c8bc; }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen flex overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (from JSON) -->
+<nav class="flex flex-col h-full border-r border-outline-variant/20 bg-surface-container-low text-primary docked left-0 w-64 flex-shrink-0 z-20">
+<div class="p-6"><div class="flex items-center gap-3 mb-2"><span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">security</span><span class="font-headline text-primary font-black text-xl tracking-tight">CloudCap</span></div></div>
+<div class="px-4 py-2 flex-1 overflow-y-auto space-y-1 font-body text-label-lg">
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg font-bold translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="">Board</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="">Sources</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">extension</span>
+<span class="">Integrations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="">Compliance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="">Policy</span>
+</a>
+</div>
+<div class="p-4">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-sm flex justify-center items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">radar</span>
+                Scan Scope
+            </button>
+</div>
+<div class="px-4 pb-6 space-y-1 font-body text-label-lg border-t border-outline-variant/20 pt-4 mt-auto">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="">Docs</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto relative scroll-smooth">
+<!-- Header area for context -->
+<header class="sticky top-0 z-10 bg-background/80 backdrop-blur-md px-8 py-6 flex justify-between items-center border-b border-outline-variant/10">
+<div>
+<h1 class="font-headline text-2xl font-bold text-on-surface tracking-tight">Board Overview</h1>
+<p class="text-on-surface-variant mt-1 text-sm">project: demo-proj • mode: live • last scan: 2m ago</p>
+</div>
+<div class="flex items-center gap-4"><div class="flex items-center gap-2 bg-surface-container px-2 py-1 rounded-lg border border-outline-variant/20"><button class="px-3 py-1 rounded-md text-[10px] font-bold bg-primary text-on-primary">ADMIN</button><button class="px-3 py-1 rounded-md text-[10px] font-bold text-on-surface-variant hover:bg-surface-variant transition-colors">OPERATOR</button></div><div class="flex items-center gap-3 pl-2 border-l border-outline-variant/20"><div class="text-right"><div class="text-sm font-bold text-on-surface leading-none">Alex Rivera</div><div class="text-[10px] font-bold text-primary uppercase tracking-wider mt-0.5">Admin</div></div><div class="h-10 w-10 rounded-full bg-primary-container/30 border border-primary/20 flex items-center justify-center overflow-hidden"><span class="text-primary font-bold text-sm">AR</span></div></div><button class="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors p-2">logout</button></div>
+</header>
+<div class="p-8 space-y-8 max-w-7xl mx-auto pb-24">
+<!-- Scan Scope & KPIs -->
+<section class="space-y-4">
+<div class="bg-surface rounded-xl p-6 border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<span class="font-headline font-bold text-on-surface text-lg">SCAN SCOPE</span>
+<span class="text-on-surface-variant text-sm">— 5/5 projects</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs font-semibold text-on-surface">demo-proj</span>
+<span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs font-semibold text-on-surface">prod-data</span>
+<span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs font-semibold text-on-surface">prod-web</span>
+<span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs font-semibold text-on-surface">sandbox</span>
+<span class="px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs font-semibold text-on-surface">staging</span>
+</div>
+<div class="w-full md:w-auto pt-4 md:pt-0 md:pl-6 md:border-l border-outline-variant/20 flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"><span class="text-primary">Clouds: GCP ●</span><span class="opacity-40">· AWS — coming soon</span><span class="opacity-40">· Azure — coming soon</span></div></div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- KPI Card -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] flex flex-col justify-between">
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Recall</h3>
+<div class="font-headline text-4xl font-bold text-primary mb-1">7/8</div>
+<p class="text-sm text-on-surface-variant">88% of planted issues</p>
+</div>
+<!-- KPI Card -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] flex flex-col justify-between">
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Precision</h3>
+<div class="font-headline text-4xl font-bold text-primary mb-1">100%</div>
+<p class="text-sm text-on-surface-variant">findings that are real</p>
+</div>
+<!-- KPI Card -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] flex flex-col justify-between">
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Monthly Waste Found</h3>
+<div class="font-headline text-4xl font-bold text-tertiary mb-1">$584</div>
+<p class="text-sm text-on-surface-variant">identified this scan</p>
+</div>
+<!-- KPI Card -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] flex flex-col justify-between">
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">ClickOps Detection</h3>
+<div class="font-headline text-4xl font-bold text-primary mb-1">PASS</div>
+<p class="text-sm text-on-surface-variant">untracked resource + attribution</p>
+</div>
+</div>
+</section>
+<!-- ROI Panel -->
+<section class="bg-surface rounded-xl p-6 border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] space-y-6">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-4">
+<h2 class="font-headline font-bold text-lg text-on-surface">CLOUDCAP RUN COST <span class="text-on-surface-variant font-normal text-sm ml-2">— self-metered estimate</span></h2>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="text-center p-4 rounded-lg bg-surface-container-lowest">
+<div class="font-headline text-3xl font-bold text-error mb-1">$36<span class="text-lg text-on-surface-variant font-normal">/mo</span></div>
+<div class="text-xs text-on-surface-variant uppercase tracking-wide">CloudCap run cost</div>
+</div>
+<div class="text-center p-4 rounded-lg bg-surface-container-lowest">
+<div class="font-headline text-3xl font-bold text-primary mb-1">$584<span class="text-lg text-on-surface-variant font-normal">/mo</span></div>
+<div class="text-xs text-on-surface-variant uppercase tracking-wide">waste it finds</div>
+</div>
+<div class="text-center p-4 rounded-lg bg-surface-container-lowest">
+<div class="font-headline text-3xl font-bold text-tertiary mb-1">16×</div>
+<div class="text-xs text-on-surface-variant uppercase tracking-wide">return on run cost</div>
+</div>
+<div class="text-center p-4 rounded-lg bg-surface-container-lowest">
+<div class="font-headline text-3xl font-bold text-primary mb-1">$0.30</div>
+<div class="text-xs text-on-surface-variant uppercase tracking-wide">per scan • 4x/day</div>
+</div>
+</div>
+<div class="text-xs text-on-surface-variant pt-2 border-t border-outline-variant/10 flex flex-wrap gap-x-6 gap-y-2">
+<span class="">Gemini Pro (orchestrator) <strong class="text-on-surface">$21.60/mo</strong></span>
+<span class="">Gemini Flash (scanners + PRs) <strong class="text-on-surface">$11.76/mo</strong></span>
+<span class="">Memory Bank events <strong class="text-on-surface">$0.57/mo</strong></span>
+<span class="">Model Armor <strong class="text-on-surface">$1.20/mo</strong></span>
+</div>
+</section><section class="space-y-4"><div class="flex items-center justify-between"><h2 class="font-headline font-bold text-lg text-on-surface">COMPLIANCE POSTURE</h2></div><div class="grid grid-cols-2 lg:grid-cols-4 gap-4"><div class="bg-surface p-4 rounded-xl border border-outline-variant/20 flex flex-col items-center justify-center text-center"><div class="text-xs font-bold text-on-surface-variant uppercase mb-1">CIS GCP</div><div class="text-2xl font-headline font-bold text-primary">94%</div></div><div class="bg-surface p-4 rounded-xl border border-outline-variant/20 flex flex-col items-center justify-center text-center"><div class="text-xs font-bold text-on-surface-variant uppercase mb-1">SOC 2</div><div class="text-2xl font-headline font-bold text-tertiary">82%</div></div><div class="bg-surface p-4 rounded-xl border border-outline-variant/20 flex flex-col items-center justify-center text-center"><div class="text-xs font-bold text-on-surface-variant uppercase mb-1">ISO 27001</div><div class="text-2xl font-headline font-bold text-primary">100%</div></div><div class="bg-surface p-4 rounded-xl border border-outline-variant/20 flex flex-col items-center justify-center text-center"><div class="text-xs font-bold text-on-surface-variant uppercase mb-1">PCI DSS</div><div class="text-2xl font-headline font-bold text-error">68%</div></div></div></section>
+<!-- Findings Table -->
+<section class="bg-surface rounded-xl border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] overflow-hidden flex flex-col">
+<div class="p-6 border-b border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between">
+<h2 class="font-headline font-bold text-lg text-on-surface">FINDINGS <span class="text-on-surface-variant font-normal text-sm ml-2">— Accept = suppress as a compliance exception (TTL)</span></h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-xs uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/20">
+<th class="p-4 font-semibold">Finding ID</th>
+<th class="p-4 font-semibold">Severity</th>
+<th class="p-4 font-semibold">Category</th>
+<th class="p-4 font-semibold">Resource</th>
+<th class="p-4 font-semibold">Title</th>
+<th class="p-4 font-semibold">Est. savings</th>
+<th class="p-4 font-semibold">Management source</th>
+<th class="p-4 font-semibold">IaC owner</th>
+<th class="p-4 font-semibold text-right">Accept</th>
+</tr>
+</thead>
+<tbody class="text-sm divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-4 text-primary font-mono text-xs">CC-e1426b98</td>
+<td class="p-4"><span class="px-2 py-1 rounded-md text-[10px] font-bold bg-tertiary-container/30 text-tertiary border border-tertiary/20">HIGH</span></td>
+<td class="p-4 text-on-surface">cost</td>
+<td class="p-4 text-on-surface font-mono text-xs">cc-manual-orphan-vm</td>
+<td class="p-4 text-on-surface max-w-xs truncate" title="Out-of-band VM (e2-standard-8), 0% utilization since creation"><div class="flex flex-col"><div class="flex items-center gap-2"><span class="truncate">Out-of-band VM (e2-standard-8)...</span><span class="px-1.5 py-0.5 rounded bg-primary text-on-primary text-[8px] font-black uppercase">NEW</span></div><span class="text-[10px] text-on-surface-variant mt-1">Public data exposure: CIS 5.1 · SOC2 CC6.1</span></div></td>
+<td class="p-4 text-tertiary font-bold">$240</td>
+<td class="p-4">
+<span class="inline-flex flex-col items-center justify-center px-2 py-1 rounded bg-surface-variant text-on-surface-variant text-[10px] font-bold leading-tight border border-outline-variant/30">
+<span class="">UNMANAGED</span>
+<span class="text-primary">ClickOps</span>
+</span>
+</td>
+<td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] bg-surface-container text-on-surface-variant border border-outline-variant/20">no IaC</span></td>
+<td class="p-4 text-right">
+<div class="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<select class="bg-surface border-outline-variant/30 text-on-surface text-xs rounded-lg py-1 pl-2 pr-6 focus:ring-primary focus:border-primary">
+<option>forever</option>
+<option>30 days</option>
+</select>
+<input class="bg-surface border-outline-variant/30 text-on-surface text-xs rounded-lg py-1 px-2 w-24 focus:ring-primary focus:border-primary" placeholder="reason" type="text"/>
+<button class="bg-surface-variant hover:bg-surface-container-high text-on-surface px-3 py-1 rounded-lg text-xs font-semibold transition-colors border border-outline-variant/30">Accept</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors bg-primary/5 group">
+<td class="p-4 text-primary font-mono text-xs">CC-310e9dad</td>
+<td class="p-4"><span class="px-2 py-1 rounded-md text-[10px] font-bold bg-tertiary-container/30 text-tertiary border border-tertiary/20">HIGH</span></td>
+<td class="p-4 text-on-surface">cost</td>
+<td class="p-4 text-on-surface font-mono text-xs">cc-oversized-sql</td>
+<td class="p-4 text-on-surface max-w-xs truncate"><div class="flex flex-col"><div class="flex items-center gap-2"><span class="truncate">Cloud SQL db-custom-4-16384 at &lt;10% util...</span><span class="px-1.5 py-0.5 rounded bg-tertiary text-on-tertiary text-[8px] font-black uppercase">REOPENED</span></div><span class="text-[10px] text-on-surface-variant mt-1">Resource Efficiency: ISO A.12.1.3</span></div></td>
+<td class="p-4 text-tertiary font-bold">$220</td>
+<td class="p-4 text-on-surface">terraform</td>
+<td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] bg-primary-container/30 text-primary border border-primary/20">acme/infra-data</span></td>
+<td class="p-4 text-right">
+<div class="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<select class="bg-surface border-outline-variant/30 text-on-surface text-xs rounded-lg py-1 pl-2 pr-6 focus:ring-primary focus:border-primary">
+<option>forever</option>
+</select>
+<input class="bg-surface border-outline-variant/30 text-on-surface text-xs rounded-lg py-1 px-2 w-24 focus:ring-primary focus:border-primary" placeholder="reason" type="text"/>
+<button class="bg-surface-variant hover:bg-surface-container-high text-on-surface px-3 py-1 rounded-lg text-xs font-semibold transition-colors border border-outline-variant/30">Accept</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-4 text-primary font-mono text-xs">CC-b24f9e52</td>
+<td class="p-4"><span class="px-2 py-1 rounded-md text-[10px] font-bold bg-surface-variant text-on-surface-variant border border-outline-variant/30">MEDIUM</span></td>
+<td class="p-4 text-on-surface">cost</td>
+<td class="p-4 text-on-surface font-mono text-xs">cc-idle-oversized-vm</td>
+<td class="p-4 text-on-surface max-w-xs truncate">Idle VM running e2-standard-4 with ~4% CPU...</td>
+<td class="p-4 text-tertiary font-bold">$90</td>
+<td class="p-4 text-on-surface">terraform</td>
+<td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] bg-primary-container/30 text-primary border border-primary/20">acme/infra-web</span></td>
+<td class="p-4 text-right">
+<div class="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-surface-variant hover:bg-surface-container-high text-on-surface px-3 py-1 rounded-lg text-xs font-semibold transition-colors border border-outline-variant/30">Accept</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-4 text-primary font-mono text-xs">CC-a26ac794</td>
+<td class="p-4"><span class="px-2 py-1 rounded-md text-[10px] font-bold bg-error-container text-on-error-container border border-error/20">CRITICAL</span></td>
+<td class="p-4 text-on-surface">security</td>
+<td class="p-4 text-on-surface font-mono text-xs">cc-public-bucket</td>
+<td class="p-4 text-on-surface max-w-xs truncate">GCS bucket is world-readable (allUsers)</td>
+<td class="p-4 text-on-surface-variant">—</td>
+<td class="p-4 text-on-surface">terraform</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] bg-error-container/50 text-error border border-error/20">
+<span class="w-1.5 h-1.5 rounded-full bg-error mr-1.5"></span>
+                                        CONFLICT · multi-state
+                                    </span>
+</td>
+<td class="p-4 text-right">
+<div class="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-surface-variant hover:bg-surface-container-high text-on-surface px-3 py-1 rounded-lg text-xs font-semibold transition-colors border border-outline-variant/30">Accept</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- GitOps Pull Requests -->
+<section class="bg-surface rounded-xl border border-outline-variant/20 shadow-[0_4px_20px_rgba(46,50,48,0.03)] overflow-hidden">
+<div class="p-6 border-b border-outline-variant/20 bg-surface-container-lowest">
+<h2 class="font-headline font-bold text-lg text-on-surface">GITOPS PULL REQUESTS <span class="text-on-surface-variant font-normal text-sm ml-2">— 5 opened · agent has no cloud write access</span></h2>
+</div>
+<div class="divide-y divide-outline-variant/10 font-mono text-sm">
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 bg-primary-container text-on-primary-container rounded text-xs font-bold">rightsize</span>
+<span class="text-on-surface">cloudcap/fix-cc-idle-oversized-vm</span>
+<span class="text-on-surface-variant text-xs">cc-idle-oversized-vm</span>
+</div>
+<span class="text-primary text-xs font-bold tracking-wide">PR OPENED</span>
+</div>
+<div class="p-4 flex items-center justify-between hover:bg-surface-container-lowest transition-colors bg-error/5">
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 bg-error-container text-on-error-container rounded text-xs font-bold">delete</span>
+<span class="text-on-surface">cloudcap/fix-cc-orphan-disk</span>
+<span class="text-on-surface-variant text-xs">cc-orphan-disk</span>
+</div>
+<span class="text-primary text-xs font-bold tracking-wide">PR OPENED</span>
+</div>
+</div>
+</section>
+<!-- Observability Log -->
+<section class="bg-[#2e3230] rounded-xl border border-outline-variant/20 shadow-inner overflow-hidden text-[#e4e0d8] font-mono text-xs">
+<div class="p-4 border-b border-outline-variant/10 bg-[#2e3230]/80">
+<h2 class="font-headline font-bold text-sm text-[#faf6f0] tracking-widest uppercase">Observability — OTEL Audit / Reasoning-Chain Log</h2>
+</div>
+<div class="p-4 h-48 overflow-y-auto space-y-1 opacity-80 custom-scrollbar">
+<div class="flex gap-4"><span class="text-[#8ecf9e] w-32 shrink-0">security_scanner</span> <span class="text-[#ffdad8] w-32 shrink-0">guardrail_block</span> <span class="text-[#d4ccbf]">{"reason":"prompt-injection / tool-poisoning detected"}</span></div>
+<div class="flex gap-4"><span class="text-[#8ecf9e] w-32 shrink-0">orchestrator</span> <span class="text-[#c8e8d0] w-32 shrink-0">scan_complete</span> <span class="text-[#d4ccbf]">{"open":7,"accepted":0}</span></div>
+<div class="flex gap-4"><span class="text-[#8ecf9e] w-32 shrink-0">notifier</span> <span class="text-[#d4ccbf] w-32 shrink-0">slack_notify</span> <span class="text-[#d4ccbf]">{"resource":"cc-idle-oversized-vm","status":"pr_opened"}</span></div>
+<div class="flex gap-4"><span class="text-[#8ecf9e] w-32 shrink-0">remediation</span> <span class="text-[#d4ccbf] w-32 shrink-0">deliver</span> <span class="text-[#d4ccbf]">{"resource":"cc-idle-oversized-vm","status":"pr_opened","channels":["pr","slack"]}</span></div>
+</div>
+</section><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><section class="bg-surface rounded-xl border border-outline-variant/20 overflow-hidden"><div class="p-4 border-b border-outline-variant/20 bg-surface-container-low"><h3 class="font-headline font-bold text-sm text-on-surface">RECENTLY RESOLVED</h3></div><div class="p-4 space-y-3"><div class="flex justify-between items-center text-xs"><span class="text-on-surface font-mono">CC-f291a2</span><span class="text-primary font-bold">FIXED</span></div><div class="flex justify-between items-center text-xs"><span class="text-on-surface font-mono">CC-d812c4</span><span class="text-primary font-bold">FIXED</span></div></div></section><section class="bg-surface rounded-xl border border-outline-variant/20 overflow-hidden"><div class="p-4 border-b border-outline-variant/20 bg-surface-container-low"><h3 class="font-headline font-bold text-sm text-on-surface">COMPLIANCE EXCEPTIONS</h3></div><div class="p-4 space-y-3"><div class="flex justify-between items-center text-xs"><span class="text-on-surface font-mono">CC-x992b1</span><span class="text-on-surface-variant">Expires in 12d</span></div><div class="flex justify-between items-center text-xs"><span class="text-on-surface font-mono">CC-z110a4</span><span class="text-on-surface-variant">Permanent</span></div></div></section></div>
+</div>
+</main>
+</body></html>
