@@ -91,16 +91,18 @@ def _pager(base, page, total, per):
 
 # Neutral (Langfuse-like) palette: warm-cream surfaces → white/zinc, warm text → near-black,
 # borders → light gray. Green stays as the single accent; error/amber kept for status.
+# Warm "paper" palette (matches the reference design). We keep the template's warm
+# Material tokens and only nudge a couple of accents for consistent finding severities.
 CONFIG_REMAP = {
-    "surface": "#ffffff", "surface-bright": "#ffffff", "surface-container-lowest": "#ffffff",
-    "background": "#fafafa", "surface-container-low": "#fafafa",
-    "surface-container": "#f4f4f5", "surface-variant": "#f4f4f5", "surface-container-high": "#f4f4f5",
-    "surface-container-highest": "#e4e4e7", "surface-dim": "#e4e4e7",
-    "on-surface": "#18181b", "on-background": "#18181b", "on-surface-variant": "#71717a",
-    "outline": "#a1a1aa", "outline-variant": "#e4e4e7", "secondary": "#52525b",
-    "primary-container": "#dcede1", "on-primary-container": "#2a6038",
-    "tertiary": "#b45309", "tertiary-container": "#fde9c8", "on-tertiary-container": "#7c4a03",
-    "error": "#dc2626", "error-container": "#fee2e2", "on-error-container": "#991b1b",
+    # Warm cream surfaces + taupe containers (card / header / sidebar backgrounds).
+    "background": "#fdf9f3", "surface": "#fdf9f3", "surface-bright": "#fdf9f3",
+    "surface-container-lowest": "#ffffff", "surface-container-low": "#f7f3ed",
+    "surface-container": "#f1ede7", "surface-variant": "#e6e2dc",
+    "surface-container-high": "#ebe8e2", "surface-container-highest": "#e6e2dc",
+    "surface-dim": "#dddad4",
+    "on-surface": "#1c1c18", "on-background": "#1c1c18", "on-surface-variant": "#414942",
+    "outline": "#717971", "outline-variant": "#c1c9bf",
+    "primary": "#316342", "primary-container": "#dcecdf", "on-primary-container": "#1e5031",
 }
 
 
@@ -111,18 +113,10 @@ def neutralize(html):
 
 
 def restyle(html):
-    """All-sans (Inter, Langfuse-like), subtle table row lines, and a global density shrink."""
-    inter = "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif"
-    # font config → Inter for every family (drops the Literata serif)
-    for fam in ('"headline": ["Literata", "serif"]', '"display": ["Literata", "serif"]',
-                '"body": ["Nunito Sans", "sans-serif"]'):
-        key = fam.split(":")[0]
-        html = html.replace(fam, f'{key}: ["Inter", "system-ui", "sans-serif"]')
-    html = html.replace("'Literata', serif", inter).replace("'Literata'", "'Inter'")
-    # load Inter instead of Literata/Nunito
-    html = re.sub(r'<link href="https://fonts\.googleapis\.com/css2\?family=Literata[^"]*"[^>]*/?>',
-                  '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>',
-                  html)
+    """Warm paper theme (reference design): Literata headings + Nunito Sans body,
+    subtle table row lines, and a uniform type scale."""
+    # Keep the template's typography — Literata (headline/display) + Nunito Sans (body/
+    # label). Normal text + the menu render in Nunito; headings/component names in Literata.
     # UNIFORM TYPE SCALE — collapse ad-hoc pixel sizes onto the Tailwind scale so no page
     # mixes several near-identical tiny fonts. Smallest allowed is text-xs; the scale is
     # then text-xs · text-sm · text-base · text-lg · text-xl · text-2xl.
@@ -135,11 +129,12 @@ def restyle(html):
     # crisper cards (less round) + tighter rhythm (aa2 look)
     html = html.replace("rounded-2xl", "rounded-lg").replace("rounded-xl", "rounded-lg")
     html = html.replace("space-y-8", "space-y-6").replace("gap-6", "gap-5")
-    # cards must read against the dotted canvas: darker border + a soft shadow to lift
+    # cards must read against the dotted canvas: warm border + a soft shadow to lift
     html = html.replace("border border-outline-variant/40 rounded-lg",
-                        "border border-[#d4d4d8] rounded-lg shadow-sm")
+                        "border border-[#e0dbd1] rounded-lg shadow-sm")
     html = html.replace("rounded-lg border border-outline-variant/20",
-                        "rounded-lg border border-[#d4d4d8] shadow-sm")
+                        "rounded-lg border border-[#e0dbd1] shadow-sm")
+    html = html.replace("#d4d4d8", "#e0dbd1")  # warm any hardcoded cool-grey card borders
     # darken card/section headers (thead + _card strips) — but not row-hover or the
     # pager's -lowest fill (protect those two, then restore).
     html = html.replace("hover:bg-surface-container-low", "\x00H\x00")
@@ -149,8 +144,8 @@ def restyle(html):
     html = html.replace("\x00L\x00", "bg-surface-container-lowest")
     # global density + a faint dot-grid canvas behind the cards
     style = ("<style>html{font-size:14px}"
-             "main{background-color:#fafafa;background-image:radial-gradient(circle at 1px 1px,"
-             "rgba(24,24,27,0.05) 1px,transparent 0);background-size:20px 20px}"
+             "main{background-color:#fdf9f3;background-image:radial-gradient(circle at 1px 1px,"
+             "rgba(28,28,24,0.045) 1px,transparent 0);background-size:20px 20px}"
              "main>header{background-image:none}"
              # vertical column dividers on every table (match the horizontal row-line tone)
              "table td,table th{border-right:1px solid rgba(228,228,231,0.6)}"
@@ -1224,7 +1219,7 @@ def render_board(project="demo-proj", page=1):
     page = max(1, min(page, pages))
     rows = _findings_rows(fd[(page - 1) * per: page * per], d["hist"])
     heads = ["Finding ID", "Severity", "Category", "Resource", "Title", "Est. savings",
-             "Ownership", "Accept"]
+             "Ownership", "Action"]
     thead = "".join(f'<th class="px-3 py-3 font-semibold">{h}</th>' for h in heads)
     findings = (
         '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
