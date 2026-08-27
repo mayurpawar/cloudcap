@@ -95,8 +95,12 @@ def propose(f: dict[str, Any]) -> RemediationPlan | None:
             title=f"[TRIAGE] {res} is managed by multiple Terraform states")
 
     # UNMANAGED (ClickOps / not in any state) -> codify-then-PR + quarantine plan.
-    if md.get("ownership_status") == "unmanaged" or \
-            md.get("management_source") == ManagementSource.UNMANAGED.value:
+    # State ownership is authoritative: a resource resolved MANAGED (found in real TF
+    # state) is NOT codified even if the classifier's label heuristic missed it. Only
+    # fall back to the label when state resolution is unavailable (ownership_status unset).
+    _own = md.get("ownership_status")
+    if _own == "unmanaged" or \
+            (_own is None and md.get("management_source") == ManagementSource.UNMANAGED.value):
         return RemediationPlan(
             resource=res, branch=branch,
             title=f"Codify + quarantine out-of-band resource {res}",
@@ -343,6 +347,14 @@ class PullRequestChannel(RemediationChannelPort):
             else:
                 return {"status": "skipped", "resource": f["resource"],
                         "reason": "no owning repo bound — report-only"}
+
+        # Real backend: only open a PR when we have a concrete file change to commit
+        # (e.g. the secret redaction's fix_files). A diff-only advisory plan for a managed
+        # resource is surfaced on the finding page for human review, not auto-PR'd.
+        if not isinstance(self.backend, MockGitBackend) and not plan.files:
+            return {"status": "advisory", "resource": f["resource"], "repo": repo,
+                    "fingerprint": f.get("fingerprint"), "kind": plan.change_kind,
+                    "reason": f"managed by {repo} — proposed change shown for review (no auto-PR)"}
         body = render_pr_body(f, proof, plan)
         files = dict(plan.files)
         if plan.diff:

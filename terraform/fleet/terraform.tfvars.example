@@ -24,3 +24,7 @@ scan_target      = "your-audited-project"    # the project the hub scans by defa
 
 # Projects to show in discovery (Browser/metadata only). Useful for no-org accounts.
 discover_project_ids = ["your-hub-project", "your-audited-project"]
+
+# IaC ownership: register Terraform state backends (GCS) → owning repo. Resources found
+# in a state resolve MANAGED (fix routed to that repo); resources in no state are ClickOps.
+# tfstate_sources = "gs://your-bucket/env.tfstate|your-org/your-infra-repo"

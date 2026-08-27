@@ -250,6 +250,12 @@ resource "google_cloud_run_v2_service" "dashboard" {
         name  = "CLOUDCAP_SCAN_PROJECT"
         value = var.scan_target # project scanned live on 'Run scan'
       }
+      # Terraform state backends registered for IaC ownership resolution (GCS state →
+      # owning repo). Resources in no indexed state resolve as ClickOps (unmanaged).
+      env {
+        name  = "CLOUDCAP_TFSTATE_SOURCES"
+        value = var.tfstate_sources
+      }
       env {
         name  = "CLOUDCAP_LOCATIONS"
         value = var.scan_locations

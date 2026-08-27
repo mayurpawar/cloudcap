@@ -11,7 +11,8 @@ from typing import Any
 
 from agents.compliance import controls_for as compliance_controls_for
 from agents.normalize import recommendation_to_finding, run_service_to_finding
-from agents.ports.interfaces import Finding, FleetContext, Severity, compute_fingerprint
+from agents.ports.interfaces import (Finding, FleetContext, ManagementSource, Severity,
+                                     compute_fingerprint)
 
 
 async def run_fleet(ctx: FleetContext, project: str) -> tuple[list[Finding], dict[str, Any]]:
@@ -91,6 +92,12 @@ async def run_fleet(ctx: FleetContext, project: str) -> tuple[list[Finding], dic
             f.metadata["owner_repo"] = own.repo
             f.metadata["tf_address"] = own.tf_address
             f.metadata["owner_candidates"] = own.candidates
+            # State beats labels: a resource found in real Terraform state IS IaC-managed,
+            # even when the goog-terraform-provisioned label is absent (older providers /
+            # resource types don't stamp it). The state index is authoritative for the
+            # managed-vs-ClickOps call, so let it correct the label-based classifier.
+            if own.status == "managed":
+                f.metadata["management_source"] = ManagementSource.TERRAFORM.value
 
             # Compliance: map to control IDs across CIS / SOC 2 / ISO 27001 / PCI DSS.
             ctrls = compliance_controls_for({

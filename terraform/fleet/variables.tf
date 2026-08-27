@@ -45,6 +45,12 @@ variable "gemini_model" {
   default     = "gemini-3.7-flash"
 }
 
+variable "tfstate_sources" {
+  description = "Terraform state backends for IaC ownership: 'gs://bucket/obj.tfstate|owner/repo' (comma-separated)."
+  type        = string
+  default     = ""
+}
+
 variable "firestore_location" {
   description = "Firestore location (region like us-central1, or multi-region nam5/eur3)."
   type        = string

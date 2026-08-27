@@ -699,6 +699,14 @@ def render_hub(project="demo-proj"):
     _reg_agents = list(_reg.values())
     _reg_verified = sum(1 for a in _reg_agents if a.get("identity_verified"))
 
+    # Ownership pillar — live Terraform-state resolution (managed vs ClickOps) from the
+    # last scan's findings. LIVE when a GCS state backend is registered.
+    _tf_sources = bool(_os.environ.get("CLOUDCAP_TFSTATE_SOURCES"))
+    _last = _ls("last_scan", {}) or {}
+    _own = [(f.get("metadata", {}) or {}).get("ownership_status") for f in _last.get("findings", [])]
+    _managed = sum(1 for s in _own if s == "managed")
+    _unmanaged = sum(1 for s in _own if s == "unmanaged")
+
     def dot(state):
         c = {"live": "primary", "mock": "tertiary", "ready": "primary", "off": "on-surface-variant"}.get(state, "primary")
         return f'<span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-{c}"></span>{esc(state.upper())}</span>'
@@ -732,7 +740,10 @@ def render_hub(project="demo-proj"):
           else "publish/discover; identities verified vs live SAs"),
          ("live" if _reg_agents and store_fs else ("ready" if _reg_agents else "mock"))),
         ("Guardrail", "Model Armor", "prompt-injection / tool-poisoning screen (+ deterministic backstop)", L),
-        ("Ownership", "Terraform state resolver", "one / none / conflict", "mock"),
+        ("Ownership", "Terraform state resolver (GCS)",
+         (f"{_managed} managed · {_unmanaged} unmanaged (from real TF state)" if _tf_sources and (_managed or _unmanaged)
+          else "resource → owning repo / TF address, or ClickOps"),
+         ("live" if _tf_sources else "mock")),
     ]
 
     def table(title, rows, c1):
