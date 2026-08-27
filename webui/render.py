@@ -191,21 +191,24 @@ def _sidebar(active, project):
                  if label == "Sources" else "")
         nav += (f'<a href="{path}" class="flex items-center gap-3 px-4 py-3 rounded-lg {cls} transition-colors">'
                 f'<span class="material-symbols-outlined">{icon}</span><span>{label}</span>{badge}</a>')
-    # Primary action: run a governance scan (the core action, on every page).
+    # Primary action: run a governance scan. Placed at the BOTTOM (not the top-left,
+    # where a stray click would trigger an unintended scan).
     scan_js = ("var b=this.querySelector('button');b.disabled=true;"
                "b.innerHTML='&lt;span class=&quot;material-symbols-outlined animate-spin&quot;&gt;"
                "progress_activity&lt;/span&gt; Scanning…';")
+    scan_cta = (
+        f'<div class="px-4 pt-3"><form method="POST" action="/scan/run" onsubmit="{scan_js}">'
+        '<button type="submit" class="w-full bg-primary text-on-primary py-3 rounded-lg '
+        'font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors '
+        'disabled:opacity-80 disabled:cursor-wait">'
+        '<span class="material-symbols-outlined">radar</span>Run scan</button></form></div>')
     return (
         '<aside class="w-64 shrink-0 bg-surface-container-highest flex flex-col border-r border-outline-variant/50 h-screen sticky top-0">'
         '<div class="p-6"><div class="font-headline font-bold text-2xl text-primary">CloudCap</div>'
         '<div class="text-on-surface-variant text-xs mt-1">Fortified Enterprise Fleet</div></div>'
-        f'<div class="px-4 pb-2"><form method="POST" action="/scan/run" onsubmit="{scan_js}">'
-        '<button type="submit" class="w-full bg-primary text-on-primary py-3 rounded-lg '
-        'font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors '
-        'disabled:opacity-80 disabled:cursor-wait">'
-        '<span class="material-symbols-outlined">radar</span>Run scan</button></form></div>'
         f'<nav class="flex-1 px-4 py-3 space-y-1 overflow-y-auto">{nav}</nav>'
-        '<div class="px-4 py-4 border-t border-outline-variant/20 space-y-1">'
+        + scan_cta +
+        '<div class="px-4 py-4 mt-1 border-t border-outline-variant/20 space-y-1">'
         '<a href="/docs#support" class="flex items-center gap-3 px-4 py-2 text-sm text-on-surface-variant hover:text-primary">'
         '<span class="material-symbols-outlined text-lg">help</span>Support</a>'
         '<a href="/docs" class="flex items-center gap-3 px-4 py-2 text-sm text-on-surface-variant hover:text-primary">'
@@ -249,11 +252,11 @@ def _header(active, auth, title=None):
 
 def _footer():
     return (
-        '<footer class="sticky bottom-0 z-10 flex items-center justify-between gap-4 px-8 py-2.5 '
-        'border-t border-outline-variant/70 bg-surface-container-highest text-xs text-on-surface-variant">'
+        '<footer class="sticky bottom-0 z-10 flex items-center justify-between gap-4 px-8 py-3 '
+        'border-t border-outline-variant/70 bg-surface-container-highest text-sm text-on-surface-variant">'
         '<div>© 2026 CloudCap · Fortified Enterprise Fleet</div>'
         '<div class="flex items-center gap-4">'
-        '<span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>'
+        '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary"></span>'
         'All systems operational</span>'
         '<a href="#" class="hover:text-primary transition-colors">Privacy</a>'
         '<a href="#" class="hover:text-primary transition-colors">Terms</a>'
@@ -424,56 +427,65 @@ def _compliance_cards(post):
     return cards
 
 
+_CAT_ICON = {"security": "shield", "iam": "key", "cost": "savings",
+             "compliance": "verified_user", "inventory": "inventory_2"}
+
+
 def _findings_rows(fd, hist):
     rows = ""
     for f in fd:
         md = f.get("metadata", {})
         sev = f["severity"]
-        sevbadge = (f'<span class="px-2 py-1 rounded-md text-[10px] font-bold '
+        sevbadge = (f'<span class="px-2.5 py-1 rounded-md text-xs font-bold '
                     f'{SEV.get(sev, SEV["low"])}">{sev.upper()}</span>')
 
         rec = hist.get(f.get("fingerprint", "")) if hist else None
         life = ""
         if rec is None or rec.occurrences <= 1:
             life = ('<span class="px-1.5 py-0.5 rounded bg-primary text-on-primary '
-                    'text-[8px] font-black uppercase">NEW</span>')
+                    'text-[9px] font-black uppercase">NEW</span>')
         elif rec.reopen_count > 0:
             life = ('<span class="px-1.5 py-0.5 rounded bg-tertiary text-on-tertiary '
-                    'text-[8px] font-black uppercase">REOPENED</span>')
+                    'text-[9px] font-black uppercase">REOPENED</span>')
 
-        title_cell = (f'<div class="flex items-center gap-2">'
-                      f'<span class="truncate">{esc(f["title"])}</span>{life}</div>')
+        cat = f.get("category", "")
+        cat_cell = ('<span class="inline-flex items-center gap-1.5 whitespace-nowrap">'
+                    f'<span class="material-symbols-outlined text-lg text-on-surface-variant">{_CAT_ICON.get(cat, "label")}</span>'
+                    f'<span class="capitalize">{esc(cat)}</span></span>')
+
+        res = esc(f["resource"])
+        res_cell = f'<span class="block max-w-[12rem] truncate font-mono text-sm" title="{res}">{res}</span>'
+
+        title_cell = (f'<div class="flex items-center gap-2 max-w-[18rem]"><span class="truncate" '
+                      f'title="{esc(f["title"])}">{esc(f["title"])}</span>{life}</div>')
 
         sv = f.get("est_monthly_savings_usd", 0)
         savings_cell = (f'<span class="text-tertiary font-bold">${sv:,.0f}</span>' if sv
-                        else '<span class="text-on-surface-variant">—</span>')
+                        else '<span class="text-on-surface-variant/50">—</span>')
 
-        src = md.get("management_source")
-        if src == "unmanaged":
-            mgmt = ('<span class="inline-flex items-center gap-1 px-2 py-1 rounded whitespace-nowrap '
-                    'bg-surface-variant text-on-surface-variant text-xs font-bold '
-                    'border border-outline-variant/30">UNMANAGED <span class="text-primary">· ClickOps</span></span>')
-        else:
-            mgmt = f'<span class="text-on-surface">{esc(src or "—")}</span>'
-
+        # Merged ownership: managed → owning repo, unmanaged → ClickOps, conflict → multi-state.
         ostatus = md.get("ownership_status")
         if ostatus == "managed":
-            owner = (f'<span class="px-2 py-1 rounded-full text-[10px] bg-primary-container/30 '
-                     f'text-primary border border-primary/20">{esc(md.get("owner_repo", ""))}</span>')
+            own_cell = (f'<span title="managed by {esc(md.get("owner_repo",""))} · {esc(md.get("tf_address",""))}" '
+                        'class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-primary-container/40 '
+                        'text-primary border border-primary/20 max-w-[13rem]">'
+                        '<span class="material-symbols-outlined text-sm">verified</span>'
+                        f'<span class="truncate">{esc(md.get("owner_repo",""))}</span></span>')
         elif ostatus == "conflict":
-            owner = ('<span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] '
-                     'bg-error-container/50 text-error border border-error/20">'
-                     '<span class="w-1.5 h-1.5 rounded-full bg-error mr-1.5"></span>CONFLICT · multi-state</span>')
+            own_cell = ('<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs '
+                        'bg-error-container/50 text-error border border-error/20 whitespace-nowrap">'
+                        '<span class="material-symbols-outlined text-sm">error</span>Conflict · multi-state</span>')
         else:
-            owner = ('<span class="px-2 py-1 rounded-full text-[10px] bg-surface-container '
-                     'text-on-surface-variant border border-outline-variant/20">no IaC</span>')
+            own_cell = ('<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs '
+                        'bg-surface-variant text-on-surface-variant border border-outline-variant/30 whitespace-nowrap">'
+                        '<span class="material-symbols-outlined text-sm">pan_tool</span>Unmanaged · ClickOps</span>')
 
-        fp, resc = esc(f.get("fingerprint", "")), esc(f["resource"])
+        fp = esc(f.get("fingerprint", ""))
         accept = (
             '<form method="POST" action="/suppress" class="flex justify-end items-center gap-2 '
             'opacity-0 group-hover:opacity-100 transition-opacity">'
             f'<input type="hidden" name="fingerprint" value="{fp}"/>'
-            f'<input type="hidden" name="resource" value="{resc}"/>'
+            f'<input type="hidden" name="resource" value="{res}"/>'
             '<select name="duration" class="bg-surface border-outline-variant/30 text-on-surface text-xs rounded-lg py-1 pl-2 pr-6">'
             '<option value="forever">forever</option><option value="month">30 days</option>'
             '<option value="week">7 days</option></select>'
@@ -482,20 +494,17 @@ def _findings_rows(fd, hist):
             '<button type="submit" class="bg-surface-variant hover:bg-surface-container-high text-on-surface '
             'px-3 py-1 rounded-lg text-xs font-semibold border border-outline-variant/30">Accept</button></form>')
 
-        fpv = esc(f.get("fingerprint", ""))
         rows += (
             '<tr class="hover:bg-surface-container-lowest transition-colors group">'
-            f'<td class="p-4 whitespace-nowrap"><a href="/finding?fp={fpv}" class="text-primary font-mono text-sm hover:underline">{fpv}</a></td>'
-            f'<td class="p-4">{sevbadge}</td>'
-            f'<td class="p-4 text-on-surface">{esc(f["category"])}</td>'
-            f'<td class="p-4 text-on-surface font-mono text-sm whitespace-nowrap">{esc(f["resource"])}</td>'
-            f'<td class="p-4 text-on-surface max-w-xs truncate">{title_cell}</td>'
-            f'<td class="p-4">{savings_cell}</td>'
-            f'<td class="p-4 whitespace-nowrap">{mgmt}</td>'
-            f'<td class="p-4 whitespace-nowrap">{owner}</td>'
-            f'<td class="p-4 text-right">{accept}</td></tr>'
-        )
-    return rows.replace('class="p-4', 'class="px-3 py-2')  # dense cells
+            f'<td class="px-3 py-2.5 whitespace-nowrap"><a href="/finding?fp={fp}" class="text-primary font-mono text-sm hover:underline">{fp}</a></td>'
+            f'<td class="px-3 py-2.5">{sevbadge}</td>'
+            f'<td class="px-3 py-2.5 text-on-surface">{cat_cell}</td>'
+            f'<td class="px-3 py-2.5 text-on-surface">{res_cell}</td>'
+            f'<td class="px-3 py-2.5 text-on-surface">{title_cell}</td>'
+            f'<td class="px-3 py-2.5">{savings_cell}</td>'
+            f'<td class="px-3 py-2.5">{own_cell}</td>'
+            f'<td class="px-3 py-2.5 text-right">{accept}</td></tr>')
+    return rows
 
 
 # --- assemble ---------------------------------------------------------------
@@ -787,31 +796,31 @@ def render_hub(project="demo-proj"):
         for a in sorted(_reg_agents, key=lambda x: _order.get(x.get("name"), 9)):
             sa = a.get("identity_sa") or "— (no standing identity · PR-brokered)"
             ok = a.get("identity_verified")
-            badge = ('<span class="inline-flex items-center gap-1 text-primary"><span class="material-symbols-outlined '
-                     'text-sm">verified</span>verified</span>') if ok else \
-                    '<span class="text-error">unverified</span>'
+            badge = ('<span class="inline-flex items-center gap-1 text-primary font-semibold">'
+                     '<span class="material-symbols-outlined text-base">verified</span>verified</span>') if ok else \
+                    '<span class="text-error font-semibold">unverified</span>'
             caps = ", ".join(a.get("capabilities", []))
-            depts = " ".join(f'<span class="px-1.5 py-0.5 rounded bg-surface-container text-[10px] '
+            depts = " ".join(f'<span class="px-2 py-0.5 rounded bg-surface-container text-xs '
                              f'text-on-surface-variant">{esc(d)}</span>' for d in a.get("departments", []))
             rows += ('<tr class="hover:bg-surface-container-low">'
-                     f'<td class="px-3 py-2 font-semibold text-on-surface">{esc(a.get("name",""))}</td>'
-                     f'<td class="px-3 py-2 text-xs text-on-surface-variant">v{esc(a.get("version",""))}</td>'
-                     f'<td class="px-3 py-2 text-xs text-on-surface-variant">{depts}</td>'
-                     f'<td class="px-3 py-2 text-xs text-on-surface-variant">{esc(caps)}</td>'
-                     f'<td class="px-3 py-2 text-xs font-mono text-on-surface-variant">{esc(sa)}</td>'
-                     f'<td class="px-3 py-2 text-xs font-bold">{badge}</td></tr>')
+                     f'<td class="px-3 py-3 font-semibold text-base text-on-surface">{esc(a.get("name",""))}</td>'
+                     f'<td class="px-3 py-3 text-sm text-on-surface-variant">v{esc(a.get("version",""))}</td>'
+                     f'<td class="px-3 py-3 text-sm text-on-surface-variant">{depts}</td>'
+                     f'<td class="px-3 py-3 text-sm text-on-surface-variant">{esc(caps)}</td>'
+                     f'<td class="px-3 py-3 text-sm font-mono text-on-surface-variant">{esc(sa)}</td>'
+                     f'<td class="px-3 py-3 text-sm font-bold">{badge}</td></tr>')
         registry_section = (
             '<section class="bg-surface border border-[#d4d4d8] rounded-lg shadow-sm overflow-hidden mb-6">'
-            '<div class="px-4 py-2.5 border-b border-outline-variant/50 flex items-center justify-between">'
-            '<h2 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Agent Registry '
+            '<div class="px-4 py-3 border-b border-outline-variant/50 flex items-center justify-between">'
+            '<h2 class="text-sm font-bold uppercase tracking-wider text-on-surface-variant">Agent Registry '
             '· published fleet</h2>'
-            f'<span class="text-[11px] text-on-surface-variant">{len(_reg_agents)} agents · '
+            f'<span class="text-sm text-on-surface-variant">{len(_reg_agents)} agents · '
             f'{_reg_verified} identities verified against live GCP service accounts</span></div>'
-            '<div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead>'
-            '<tr class="bg-surface-container text-xs uppercase tracking-wider text-on-surface-variant '
-            'border-b border-outline-variant/60"><th class="px-3 py-2">Agent</th><th class="px-3 py-2">Version</th>'
-            '<th class="px-3 py-2">Departments</th><th class="px-3 py-2">Capabilities</th>'
-            '<th class="px-3 py-2">Identity (service account)</th><th class="px-3 py-2">Verified</th></tr>'
+            '<div class="overflow-x-auto"><table class="w-full text-left text-base"><thead>'
+            '<tr class="bg-surface-container text-sm uppercase tracking-wider text-on-surface-variant '
+            'border-b border-outline-variant/60"><th class="px-3 py-3">Agent</th><th class="px-3 py-3">Version</th>'
+            '<th class="px-3 py-3">Departments</th><th class="px-3 py-3">Capabilities</th>'
+            '<th class="px-3 py-3">Identity (service account)</th><th class="px-3 py-3">Verified</th></tr>'
             f'</thead><tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div></section>')
 
     return _base_page(summary + table("Agents (the fleet)", agents, "Agent")
@@ -820,8 +829,8 @@ def render_hub(project="demo-proj"):
 
 
 def _metric(label, value):
-    return (f'<div><div class="text-on-surface-variant text-[11px]">{esc(label)}</div>'
-            f'<div class="font-bold text-on-surface">{value}</div></div>')
+    return (f'<div><div class="text-on-surface-variant text-xs">{esc(label)}</div>'
+            f'<div class="font-bold text-base text-on-surface">{value}</div></div>')
 
 
 def render_not_ready(auth=None):
@@ -1157,10 +1166,10 @@ def render_board(project="demo-proj", page=1):
     def card(title, big, big_sub, big_color, sub_html):
         return (
             '<div class="bg-surface border border-outline-variant/40 rounded-lg p-5">'
-            f'<div class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">{esc(title)}</div>'
-            f'<div class="flex items-baseline gap-2"><span class="text-3xl font-bold text-{big_color}">{big}</span>'
-            f'<span class="text-xs text-on-surface-variant">{esc(big_sub)}</span></div>'
-            f'<div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 text-xs">{sub_html}</div></div>')
+            f'<div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3">{esc(title)}</div>'
+            f'<div class="flex items-baseline gap-2"><span class="text-4xl font-bold text-{big_color}">{big}</span>'
+            f'<span class="text-sm text-on-surface-variant">{esc(big_sub)}</span></div>'
+            f'<div class="grid grid-cols-2 gap-x-4 gap-y-3 mt-5 text-sm">{sub_html}</div></div>')
 
     scan_label = "live scan" if d.get("mode") == "live" else "demo scan"
     detection = card("Findings", str(d["n_findings"]), scan_label, "primary",
@@ -1179,9 +1188,9 @@ def render_board(project="demo-proj", page=1):
                       f'<span class="font-bold text-{col}">{p["score"] * 100:.0f}%</span></div>')
     compliance = (
         '<div class="bg-surface border border-outline-variant/40 rounded-lg p-5">'
-        '<div class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Compliance</div>'
-        f'<div class="space-y-1.5 text-xs">{comp_rows}</div>'
-        '<a href="/compliance" class="text-[11px] text-primary hover:underline mt-3 inline-block">View control matrix →</a></div>')
+        '<div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3">Compliance</div>'
+        f'<div class="space-y-2 text-sm">{comp_rows}</div>'
+        '<a href="/compliance" class="text-sm text-primary hover:underline mt-4 inline-block">View control matrix →</a></div>')
 
     cards = f'<section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">{detection}{cost}{compliance}</section>'
 
@@ -1196,10 +1205,10 @@ def render_board(project="demo-proj", page=1):
         summary_strip = (
             '<section class="bg-surface border border-[#d4d4d8] rounded-lg shadow-sm p-5 mb-6">'
             '<div class="flex items-center gap-2 mb-2">'
-            '<span class="material-symbols-outlined text-primary text-lg">neurology</span>'
-            '<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Orchestrator summary</span>'
-            f'<span class="ml-auto px-2 py-0.5 rounded text-[10px] font-bold {badge_cls}">{badge_txt}</span></div>'
-            f'<p class="text-sm text-on-surface leading-relaxed">{esc(d["summary"])}</p></section>')
+            '<span class="material-symbols-outlined text-primary text-xl">neurology</span>'
+            '<span class="text-sm font-bold uppercase tracking-wider text-on-surface-variant">Orchestrator summary</span>'
+            f'<span class="ml-auto px-2 py-0.5 rounded text-[11px] font-bold {badge_cls}">{badge_txt}</span></div>'
+            f'<p class="text-base text-on-surface leading-relaxed">{esc(d["summary"])}</p></section>')
 
     # --- findings table (dense, paginated) — ordered by the reasoner's priority rank ---
     per = PAGE_SIZE_FINDINGS
@@ -1209,14 +1218,14 @@ def render_board(project="demo-proj", page=1):
     page = max(1, min(page, pages))
     rows = _findings_rows(fd[(page - 1) * per: page * per], d["hist"])
     heads = ["Finding ID", "Severity", "Category", "Resource", "Title", "Est. savings",
-             "Management source", "IaC owner", "Accept"]
-    thead = "".join(f'<th class="px-3 py-2 font-semibold">{h}</th>' for h in heads)
+             "Ownership", "Accept"]
+    thead = "".join(f'<th class="px-3 py-3 font-semibold">{h}</th>' for h in heads)
     findings = (
         '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
-        '<div class="px-4 py-2.5 border-b border-outline-variant/50">'
-        '<h2 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Findings</h2></div>'
-        '<div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead>'
-        '<tr class="bg-surface-container-low text-xs uppercase tracking-wider text-on-surface-variant '
+        '<div class="px-4 py-3 border-b border-outline-variant/50">'
+        '<h2 class="text-sm font-bold uppercase tracking-wider text-on-surface-variant">Findings</h2></div>'
+        '<div class="overflow-x-auto"><table class="w-full text-left text-base"><thead>'
+        '<tr class="bg-surface-container-low text-sm uppercase tracking-wider text-on-surface-variant '
         f'border-b border-outline-variant/60">{thead}</tr></thead>'
         f'<tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div>'
         f'{_pager("/board", page, len(fd), per)}</section>')
@@ -1642,9 +1651,9 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
     compliant = all(p["failing"] == 0 for p in post.values())
     overall = overall_score(post) * 100
     ocol = "primary" if compliant else "error"
-    badge = ('<span class="px-3 py-1 rounded text-sm font-bold bg-primary-container text-on-primary-container">✓ COMPLIANT</span>'
+    badge = ('<span class="px-3 py-1 rounded text-sm font-bold bg-primary-container text-on-primary-container">COMPLIANT</span>'
              if compliant else
-             '<span class="px-3 py-1 rounded text-sm font-bold bg-error-container text-on-error-container">✗ NON-COMPLIANT</span>')
+             '<span class="px-3 py-1 rounded text-sm font-bold bg-error-container text-on-error-container">NON-COMPLIANT</span>')
     headline = (
         '<div class="flex items-center justify-between mb-5"><div class="flex items-center gap-4">'
         f'<div class="text-5xl font-bold text-{ocol}">{overall:.0f}%</div>'
@@ -1655,15 +1664,15 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
     def cell(rule, fw):
         cid = CONTROLS[rule].get(fw, "")
         if not cid:
-            return '<td class="px-3 py-3.5 text-center text-base text-on-surface-variant/40">—</td>'
+            return '<td class="px-3 py-2.5 text-center text-base text-on-surface-variant/40">—</td>'
         if rule in fails:
             flist = fails[rule]
             fp, n = flist[0][1], len(flist)
             badge = f'<sup class="text-[11px] ml-0.5">×{n}</sup>' if n > 1 else ""
             tip = f"{n} finding(s): " + ", ".join(f"{r} ({f})" for r, f in flist)
-            return (f'<td class="px-3 py-3.5 text-center bg-error-container/40"><a href="/finding?fp={esc(fp)}" '
+            return (f'<td class="px-3 py-2.5 text-center bg-error-container/40"><a href="/finding?fp={esc(fp)}" '
                     f'title="{esc(tip)}" class="font-mono text-base text-error font-semibold hover:underline">{esc(cid)}{badge}</a></td>')
-        return (f'<td class="px-3 py-3.5 text-center bg-primary-container/40">'
+        return (f'<td class="px-3 py-2.5 text-center bg-primary-container/40">'
                 f'<span class="font-mono text-base text-primary">{esc(cid)}</span></td>')
 
     rows = ""
@@ -1673,8 +1682,8 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
                  f'<span class="w-2 h-2 rounded-full bg-{"error" if failing else "primary"}"></span>{"FAIL" if failing else "PASS"}</span>')
         cells = "".join(cell(rule, fw) for fw in FRAMEWORKS)
         rows += ('<tr class="hover:bg-surface-container-low transition-colors">'
-                 f'<td class="px-3 py-3.5 font-semibold text-base text-on-surface">{esc(m["name"])}</td>'
-                 f'<td class="px-3 py-3.5">{rstat}</td>{cells}</tr>')
+                 f'<td class="px-3 py-2.5 font-semibold text-base text-on-surface">{esc(m["name"])}</td>'
+                 f'<td class="px-3 py-2.5">{rstat}</td>{cells}</tr>')
 
     foot = '<td colspan="2" class="px-3 py-3 font-bold text-on-surface-variant uppercase tracking-wider text-sm">Framework score</td>'
     for fw in FRAMEWORKS:
@@ -1716,7 +1725,7 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
                 f'text-on-surface-variant mb-1.5">{esc(fw)}</div>{chips}</div>')
 
     scope_panel = (
-        '<section class="bg-surface border border-outline-variant/40 rounded-lg p-6 mt-6">'
+        '<section class="bg-surface border border-outline-variant/40 rounded-lg p-5 mt-5">'
         '<div class="flex items-center justify-between mb-1">'
         '<h3 class="text-lg font-bold text-on-surface">Control groups in scope</h3>'
         '<span class="text-xs text-on-surface-variant">Admin · applies to the score above</span></div>'
