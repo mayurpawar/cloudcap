@@ -123,6 +123,12 @@ def restyle(html):
     html = re.sub(r'<link href="https://fonts\.googleapis\.com/css2\?family=Literata[^"]*"[^>]*/?>',
                   '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>',
                   html)
+    # UNIFORM TYPE SCALE — collapse ad-hoc pixel sizes onto the Tailwind scale so no page
+    # mixes several near-identical tiny fonts. Smallest allowed is text-xs; the scale is
+    # then text-xs · text-sm · text-base · text-lg · text-xl · text-2xl.
+    for tiny in ("text-[8px]", "text-[9px]", "text-[10px]", "text-[11px]"):
+        html = html.replace(tiny, "text-xs")
+    html = html.replace("text-[12px]", "text-xs").replace("text-[13px]", "text-sm")
     # subtle, visible row separators
     html = html.replace("divide-outline-variant/10", "divide-outline-variant/60")
     html = html.replace("divide-outline-variant/20", "divide-outline-variant/60")
@@ -1291,7 +1297,7 @@ def project_setup_form(proj, action="/sources/project/save", submit="Save",
     s = ProjectSettings().get(proj)
     fr = FreezeStore().get(proj) or {}
     have = {c["type"]: c["value"] for c in s.get("channels", [])}
-    inp = "bg-background border border-outline-variant/40 rounded-lg px-3 py-2 text-sm w-full"
+    inp = "bg-background border border-outline-variant/40 rounded-lg px-3 py-2.5 text-base w-full"
     uid = re.sub(r"[^a-z0-9]+", "_", proj.lower())  # unique element ids per project
 
     chans = ""
@@ -1547,16 +1553,16 @@ def render_policy(project="demo-proj", page=1):
             accent = "text-primary" if field in ACTION_FIELDS else "text-tertiary"
             reason = gated(scope, field)
             if reason:
-                cells += (f'<td class="px-2 py-2 text-center{sep(field)}" title="{esc(reason)}">'
+                cells += (f'<td class="px-2 py-2.5 text-center{sep(field)}" title="{esc(reason)}">'
                           '<input type="checkbox" disabled class="w-4 h-4 rounded border-outline '
                           'opacity-30 cursor-not-allowed"/></td>')
             else:
                 chk = 'checked=""' if val(scope, field) else ""
-                cells += (f'<td class="px-2 py-2 text-center{sep(field)}"><input type="checkbox" {chk} '
+                cells += (f'<td class="px-2 py-2.5 text-center{sep(field)}"><input type="checkbox" {chk} '
                           f'data-scope="{esc(scope)}" data-field="{esc(field)}" onchange="ccPol(this)" '
                           f'class="w-4 h-4 rounded border-outline {accent} cursor-pointer"/></td>')
         rows += ('<tr class="hover:bg-surface-container-low transition-colors">'
-                 f'<td class="px-3 py-2 whitespace-nowrap font-mono text-sm">{esc(scope)}</td>{cells}</tr>')
+                 f'<td class="px-3 py-2.5 whitespace-nowrap font-mono text-base">{esc(scope)}</td>{cells}</tr>')
 
     hdr = ('<thead class="text-on-surface-variant">'
            '<tr class="bg-surface-container-low border-b border-outline-variant/50 text-[11px] uppercase tracking-wider">'
@@ -1574,7 +1580,7 @@ def render_policy(project="demo-proj", page=1):
 
     # --- JIRA connector (destination for the Issue action) ---
     jc = JiraConfig()
-    inp = "bg-background border border-outline-variant/40 rounded-lg px-3 py-2 text-sm w-full"
+    inp = "bg-background border border-outline-variant/40 rounded-lg px-3 py-2.5 text-base w-full"
     tok = ('<span class="text-primary">✓ token present</span>' if jc.token
            else '<span class="text-tertiary">token via Secret Manager / JIRA_API_TOKEN (not set)</span>')
     status = ('<span class="inline-flex items-center gap-1 text-xs font-bold text-primary">'
@@ -1597,13 +1603,13 @@ def render_policy(project="demo-proj", page=1):
         '</form></section>')
 
     content = (
-        '<p class="text-sm text-on-surface-variant mb-4 max-w-3xl">Policy for your <b>in-scope projects</b>. '
+        '<p class="text-base text-on-surface-variant mb-5 max-w-3xl">Policy for your <b>in-scope projects</b>. '
         '<b>Actions</b> are gated by what you set up — <b>PR</b> needs a repo, <b>Slack</b> needs a channel '
         '(both in Sources), <b>Issue</b> needs JIRA (below); unavailable ones are greyed out. '
         '<b>Governance Scope</b> (Domains + Frameworks) is always adjustable. Changes save instantly.</p>'
         + jira_card +
         '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
-        f'<div class="overflow-x-auto"><table class="w-full text-left">{hdr}'
+        f'<div class="overflow-x-auto"><table class="w-full text-left text-base">{hdr}'
         f'<tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div>'
         f'{_pager("/policy", page, total, per)}</section>'
         '<script>function ccPol(el){fetch("/policy/toggle",{method:"POST",'
