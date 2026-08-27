@@ -687,9 +687,17 @@ def render_hub(project="demo-proj"):
     live_mode = _os.environ.get("CLOUDCAP_SCAN_MODE", "mock").lower() == "live"
     store_fs = _os.environ.get("CLOUDCAP_STORE", "local").lower() == "firestore"
     audit_cloud = _os.environ.get("CLOUDCAP_AUDIT", "file").lower() == "cloud"
-    reasoner = "Gemini 3.5 · Vertex AI" if gemini else "Deterministic (mock)"
+    _model = _os.environ.get("CLOUDCAP_GEMINI_MODEL", "gemini-3.7-flash")
+    reasoner = f"{_model} · Vertex AI" if gemini else "Deterministic (mock)"
     prov = _wa.provider()
     L = "live" if live_mode else "mock"  # scanners follow the deployment's data mode
+
+    # Agent Registry pillar — the fleet registered by the last scan (Firestore),
+    # each agent verified against its real GCP service account.
+    from agents.store import load_state as _ls
+    _reg = _ls("agent_registry", {}) or {}
+    _reg_agents = list(_reg.values())
+    _reg_verified = sum(1 for a in _reg_agents if a.get("identity_verified"))
 
     def dot(state):
         c = {"live": "primary", "mock": "tertiary", "ready": "primary", "off": "on-surface-variant"}.get(state, "primary")
@@ -719,7 +727,10 @@ def render_hub(project="demo-proj"):
         ("Classifier", "Cloud Asset Inventory labels", "IaC-managed vs ClickOps", L),
         ("Memory", "finding-lifecycle store (Firestore)", "cross-scan new / recurring / resolved", "ready" if store_fs else "mock"),
         ("Identity", "runtime service account (cc-runtime)", "least-privilege, read-only", "ready"),
-        ("Registry", "GEAP Agent Registry", "static fleet manifest", "mock"),
+        ("Registry", "GEAP Agent Registry (Firestore)",
+         (f"{len(_reg_agents)} agents · {_reg_verified} identities verified" if _reg_agents
+          else "publish/discover; identities verified vs live SAs"),
+         ("live" if _reg_agents and store_fs else ("ready" if _reg_agents else "mock"))),
         ("Guardrail", "Model Armor", "prompt-injection / tool-poisoning screen (+ deterministic backstop)", L),
         ("Ownership", "Terraform state resolver", "one / none / conflict", "mock"),
     ]
@@ -745,8 +756,46 @@ def render_hub(project="demo-proj"):
     note = ('<p class="text-xs text-on-surface-variant">LIVE = calling a Google Cloud API in this deployment · '
             'READY = real logic on real persisted state (not a managed API) · MOCK = deterministic stand-in that '
             'swaps to the live Google adapter one line at a time (hexagonal ports). No agent logic changes between them.</p>')
+
+    # Agent Registry detail — the concrete published fleet + live identity verification.
+    registry_section = ""
+    if _reg_agents:
+        _order = {"orchestrator": 0, "cost_scanner": 1, "security_scanner": 2,
+                  "iam_scanner": 3, "compliance_scanner": 4, "remediation": 5}
+        rows = ""
+        for a in sorted(_reg_agents, key=lambda x: _order.get(x.get("name"), 9)):
+            sa = a.get("identity_sa") or "— (no standing identity · PR-brokered)"
+            ok = a.get("identity_verified")
+            badge = ('<span class="inline-flex items-center gap-1 text-primary"><span class="material-symbols-outlined '
+                     'text-sm">verified</span>verified</span>') if ok else \
+                    '<span class="text-error">unverified</span>'
+            caps = ", ".join(a.get("capabilities", []))
+            depts = " ".join(f'<span class="px-1.5 py-0.5 rounded bg-surface-container text-[10px] '
+                             f'text-on-surface-variant">{esc(d)}</span>' for d in a.get("departments", []))
+            rows += ('<tr class="hover:bg-surface-container-low">'
+                     f'<td class="px-3 py-2 font-semibold text-on-surface">{esc(a.get("name",""))}</td>'
+                     f'<td class="px-3 py-2 text-xs text-on-surface-variant">v{esc(a.get("version",""))}</td>'
+                     f'<td class="px-3 py-2 text-xs text-on-surface-variant">{depts}</td>'
+                     f'<td class="px-3 py-2 text-xs text-on-surface-variant">{esc(caps)}</td>'
+                     f'<td class="px-3 py-2 text-xs font-mono text-on-surface-variant">{esc(sa)}</td>'
+                     f'<td class="px-3 py-2 text-xs font-bold">{badge}</td></tr>')
+        registry_section = (
+            '<section class="bg-surface border border-[#d4d4d8] rounded-lg shadow-sm overflow-hidden mb-6">'
+            '<div class="px-4 py-2.5 border-b border-outline-variant/50 flex items-center justify-between">'
+            '<h2 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Agent Registry '
+            '· published fleet</h2>'
+            f'<span class="text-[11px] text-on-surface-variant">{len(_reg_agents)} agents · '
+            f'{_reg_verified} identities verified against live GCP service accounts</span></div>'
+            '<div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead>'
+            '<tr class="bg-surface-container text-xs uppercase tracking-wider text-on-surface-variant '
+            'border-b border-outline-variant/60"><th class="px-3 py-2">Agent</th><th class="px-3 py-2">Version</th>'
+            '<th class="px-3 py-2">Departments</th><th class="px-3 py-2">Capabilities</th>'
+            '<th class="px-3 py-2">Identity (service account)</th><th class="px-3 py-2">Verified</th></tr>'
+            f'</thead><tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div></section>')
+
     return _base_page(summary + table("Agents (the fleet)", agents, "Agent")
-                      + table("Platform (GEAP pillars / ports)", ports, "Port") + note)
+                      + table("Platform (GEAP pillars / ports)", ports, "Port")
+                      + registry_section + note)
 
 
 def _metric(label, value):

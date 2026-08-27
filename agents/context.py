@@ -112,7 +112,8 @@ def build_context(
             memory=memory,
             guardrail=guardrail,                               # REAL Model Armor (+ backstop)
             gateway=g.AgentGatewayAdapter(project=project),    # REAL cost + security + IAM
-            registry=m.MockRegistry(),
+            registry=g.AgentRegistryAdapter(project=hub, location=location),  # Firestore + live SA verify
+
             identity=m.MockIdentity(),
             observability=observability,                       # Cloud Logging (+ file fallback)
             classifier=g.LiveResourceClassifier(project=project),  # REAL IaC-vs-ClickOps (Asset labels)

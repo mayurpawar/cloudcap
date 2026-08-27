@@ -30,6 +30,17 @@ async def run_scan(project: str, mode: str = "mock", durable_audit: bool = True)
     store = SuppressionStore()
     ctx._suppressed_fingerprints = store.active_fingerprints(date.today())
 
+    # Agent Registry pillar: register the approved fleet (persist + verify each agent's
+    # real GCP service account). Best-effort — a registry hiccup never blocks a scan.
+    try:
+        import os as _os
+
+        from agents.adapters.google_geap import fleet_roster
+        for _spec in fleet_roster(_os.environ.get("GOOGLE_CLOUD_PROJECT") or project):
+            await ctx.registry.publish(_spec)
+    except Exception:
+        pass
+
     findings, meta = await run_fleet(ctx, project)
 
     # honour per-project governance (which domains to keep)

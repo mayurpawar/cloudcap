@@ -616,20 +616,116 @@ class LiveResourceClassifier(ResourceClassifierPort):
             triggering_entity=None, attribution_confidence="medium")
 
 
-class AgentRegistryAdapter(RegistryPort):
-    """GEAP Agent Registry — publish/version/discover approved agents."""
+_FLEET_VERSION = os.environ.get("CLOUDCAP_FLEET_VERSION", "1.0.0")
 
-    def __init__(self, project: str, location: str):
-        self.project = project
+
+def fleet_roster(project: str) -> list[AgentSpec]:
+    """The enterprise-approved fleet — mirrors terraform/fleet `var.agents` (the source of
+    truth for which agents exist + their least-privilege roles). Capabilities reflect the
+    tools each scanner actually calls in this codebase. `identity_sa` is the real GCP
+    service account the agent runs as (empty for remediation: writes are brokered behind a
+    human-approved PR, so it holds NO standing cloud identity)."""
+    p = project
+    return [
+        AgentSpec(name="orchestrator", version=_FLEET_VERSION,
+                  description="Ranks + narrates findings with Gemini; never mutates them.",
+                  departments=["finops", "secops", "platform"],
+                  capabilities=["reasoning", "prioritization", "executive-summary"],
+                  identity_sa=f"cc-orchestrator@{p}.iam.gserviceaccount.com"),
+        AgentSpec(name="cost_scanner", version=_FLEET_VERSION,
+                  description="Recommender + Cloud Run utilization → cost findings.",
+                  departments=["finops"],
+                  capabilities=["recommender.list", "run.utilization"],
+                  identity_sa=f"cc-cost-scanner@{p}.iam.gserviceaccount.com"),
+        AgentSpec(name="security_scanner", version=_FLEET_VERSION,
+                  description="Asset Inventory public-exposure + object-metadata screen (Model Armor).",
+                  departments=["secops"],
+                  capabilities=["asset.security_findings", "storage.object_metadata"],
+                  identity_sa=f"cc-security-scanner@{p}.iam.gserviceaccount.com"),
+        AgentSpec(name="iam_scanner", version=_FLEET_VERSION,
+                  description="Primitive-role sprawl + IAM Recommender.",
+                  departments=["secops"],
+                  capabilities=["iam.findings", "recommender.iam"],
+                  identity_sa=f"cc-iam-scanner@{p}.iam.gserviceaccount.com"),
+        AgentSpec(name="compliance_scanner", version=_FLEET_VERSION,
+                  description="Maps findings to SOC 2 / CIS / ISO 27001 / PCI DSS controls.",
+                  departments=["grc"],
+                  capabilities=["control-mapping"],
+                  identity_sa=f"cc-compliance-scanner@{p}.iam.gserviceaccount.com"),
+        AgentSpec(name="remediation", version=_FLEET_VERSION,
+                  description="GitOps PR remediation; no standing cloud identity (human-approved PR).",
+                  departments=["platform"],
+                  capabilities=["pr-remediation", "secret-redaction"],
+                  identity_sa=""),
+    ]
+
+
+class AgentRegistryAdapter(RegistryPort):
+    """GEAP Agent Registry — publish / version / discover approved agents, persisted in
+    Firestore and VERIFIED against real deployed GCP service accounts.
+
+    publish() records the agent (Firestore doc `agent_registry`) and checks — live, via the
+    IAM API — that its bound service account actually exists (registry-vs-reality drift is a
+    real enterprise concern). discover() returns the persisted roster, optionally filtered by
+    department. Read-only against IAM; the only write is to our own Firestore registry doc."""
+
+    _DOC = "agent_registry"
+
+    def __init__(self, project: str, location: str = "us-central1"):
+        self.project = project  # hub project where the cc-* service accounts live
         self.location = location
+        self._sa_emails: set[str] | None = None
+
+    def _token(self) -> str:
+        import google.auth
+        import google.auth.transport.requests
+        creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        creds.refresh(google.auth.transport.requests.Request())
+        return creds.token
+
+    def _live_sa_emails(self) -> set[str]:
+        """Set of service-account emails that ACTUALLY exist in the hub project (one IAM
+        list call, cached). Empty set on any error → agents read as unverified, never crash."""
+        if self._sa_emails is not None:
+            return self._sa_emails
+        emails: set[str] = set()
+        try:
+            import json as _json
+            import urllib.request
+            url = f"https://iam.googleapis.com/v1/projects/{self.project}/serviceAccounts?pageSize=100"
+            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {self._token()}"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                for a in _json.load(r).get("accounts", []):
+                    emails.add(a.get("email", ""))
+        except Exception:
+            pass
+        self._sa_emails = emails
+        return emails
 
     async def publish(self, spec: AgentSpec) -> None:
-        # TODO(D7): register agent + version into the org Agent Registry.
-        return None
+        import dataclasses
+
+        from agents.store import load_state, save_state
+        reg = load_state(self._DOC, {}) or {}
+        verified = (not spec.identity_sa) or (
+            await asyncio.to_thread(lambda: spec.identity_sa in self._live_sa_emails()))
+        entry = dataclasses.asdict(spec)
+        entry["identity_verified"] = bool(verified)
+        reg[spec.name] = entry
+        save_state(self._DOC, reg)
 
     async def discover(self, department: str | None = None) -> list[AgentSpec]:
-        # TODO(D7): query registry, optionally filter by department.
-        return []
+        from agents.store import load_state
+        reg = load_state(self._DOC, {}) or {}
+        out: list[AgentSpec] = []
+        for e in reg.values():
+            if department and department not in e.get("departments", []):
+                continue
+            out.append(AgentSpec(
+                name=e["name"], version=e.get("version", ""), description=e.get("description", ""),
+                departments=e.get("departments", []), capabilities=e.get("capabilities", []),
+                identity_sa=e.get("identity_sa", "")))
+        return out
 
 
 class WorkloadIdentityAdapter(IdentityPort):
