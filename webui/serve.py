@@ -18,9 +18,9 @@ from webui.sessions import build_sessions
 
 from webui import onboarding as ob
 from webui.render import (neutralize, normalize_layout, render_board, render_compliance,
-                          render_docs, render_finding, render_hub, render_integrations,
-                          render_login, render_not_ready, render_policy, render_sources,
-                          restyle, shell)
+                          render_docs, render_finding, render_history, render_hub,
+                          render_integrations, render_login, render_not_ready, render_policy,
+                          render_sources, restyle, shell)
 
 
 def _final(html):
@@ -30,6 +30,7 @@ ROUTES = {
     "/": render_board, "/board": render_board, "/sources": render_sources,
     "/integrations": render_integrations, "/compliance": render_compliance,
     "/policy": render_policy, "/hub": render_hub, "/docs": render_docs,
+    "/history": render_history,
 }
 
 # Per-user sessions keyed by an opaque cookie id. Firestore-backed on deploy (survives
@@ -185,13 +186,18 @@ def make_handler(project):
                 html = normalize_layout(shell(content, "/sources", project, auth))
                 return self._send(_final(html))
 
+            if path == "/docs":
+                content = render_docs(project, query.get("topic"))
+                html = normalize_layout(shell(content, "/docs", project, auth))
+                return self._send(_final(html))
+
             active = "/board" if path in ("/", "/board") else path
             try:
                 page = max(1, int(query.get("page", "1")))
             except ValueError:
                 page = 1
             renderer = ROUTES.get(path, render_board)
-            paged = (render_board, render_compliance, render_sources, render_policy)
+            paged = (render_board, render_compliance, render_sources, render_policy, render_history)
             content = renderer(project, page) if renderer in paged else renderer(project)
             html = normalize_layout(shell(content, active, project, auth))
             return self._send(_final(html))

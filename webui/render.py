@@ -174,8 +174,8 @@ TITLES = {"/board": "Board Overview", "/sources": "Sources",
           "/integrations": "Integrations & Health", "/compliance": "Compliance Posture",
           "/policy": "Policy Configuration", "/hub": "Hub · Components"}
 NAV_ITEMS = [("Board", "/board", "dashboard"), ("Hub", "/hub", "hub"),
-             ("Sources", "/sources", "database"), ("Compliance", "/compliance", "verified_user"),
-             ("Policy", "/policy", "gavel")]
+             ("History", "/history", "history"), ("Sources", "/sources", "database"),
+             ("Compliance", "/compliance", "verified_user"), ("Policy", "/policy", "gavel")]
 
 
 def _sidebar(active, project):
@@ -185,15 +185,25 @@ def _sidebar(active, project):
         on = path == active
         cls = ("bg-primary-container text-on-primary-container font-bold" if on
                else "text-on-surface-variant hover:text-primary hover:bg-surface-variant")
+        # The Sources item carries the scope count (selected / discovered) as a badge.
+        badge = (f'<span class="ml-auto text-xs font-semibold px-1.5 py-0.5 rounded '
+                 f'bg-surface-variant text-on-surface-variant">{sel}/{total}</span>'
+                 if label == "Sources" else "")
         nav += (f'<a href="{path}" class="flex items-center gap-3 px-4 py-3 rounded-lg {cls} transition-colors">'
-                f'<span class="material-symbols-outlined">{icon}</span><span>{label}</span></a>')
+                f'<span class="material-symbols-outlined">{icon}</span><span>{label}</span>{badge}</a>')
+    # Primary action: run a governance scan (the core action, on every page).
+    scan_js = ("var b=this.querySelector('button');b.disabled=true;"
+               "b.innerHTML='&lt;span class=&quot;material-symbols-outlined animate-spin&quot;&gt;"
+               "progress_activity&lt;/span&gt; Scanning…';")
     return (
-        '<aside class="w-64 shrink-0 bg-surface-container-highest flex flex-col border-r border-outline/50 h-screen sticky top-0">'
+        '<aside class="w-64 shrink-0 bg-surface-container-highest flex flex-col border-r border-outline-variant/50 h-screen sticky top-0">'
         '<div class="p-6"><div class="font-headline font-bold text-2xl text-primary">CloudCap</div>'
         '<div class="text-on-surface-variant text-xs mt-1">Fortified Enterprise Fleet</div></div>'
-        '<div class="px-4 pb-2"><a href="/sources" class="w-full bg-primary text-on-primary py-3 rounded-lg '
-        'font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">'
-        f'<span class="material-symbols-outlined">radar</span>Scan Scope · {sel}/{total}</a></div>'
+        f'<div class="px-4 pb-2"><form method="POST" action="/scan/run" onsubmit="{scan_js}">'
+        '<button type="submit" class="w-full bg-primary text-on-primary py-3 rounded-lg '
+        'font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors '
+        'disabled:opacity-80 disabled:cursor-wait">'
+        '<span class="material-symbols-outlined">radar</span>Run scan</button></form></div>'
         f'<nav class="flex-1 px-4 py-3 space-y-1 overflow-y-auto">{nav}</nav>'
         '<div class="px-4 py-4 border-t border-outline-variant/20 space-y-1">'
         '<a href="/docs#support" class="flex items-center gap-3 px-4 py-2 text-sm text-on-surface-variant hover:text-primary">'
@@ -849,19 +859,21 @@ def _doc_pill(text, tone="ready"):
 
 
 def _doc_table(rows, headers=("Setting", "Where it lives", "Notes")):
-    head = "".join(f'<th class="text-left font-semibold text-on-surface px-3 py-2">{esc(h)}</th>' for h in headers)
+    head = "".join(f'<th class="text-left font-semibold text-on-surface px-3 py-2.5">{esc(h)}</th>' for h in headers)
     body = ""
     for r in rows:
-        cells = "".join(f'<td class="px-3 py-2 align-top border-t border-outline-variant/20">{c}</td>' for c in r)
+        cells = "".join(f'<td class="px-3 py-2.5 align-top border-t border-outline-variant/20">{c}</td>' for c in r)
         body += f"<tr>{cells}</tr>"
-    return (f'<table class="w-full text-xs"><thead class="bg-surface-container-low"><tr>{head}</tr></thead>'
-            f'<tbody>{body}</tbody></table>')
+    return ('<div class="overflow-x-auto rounded-lg border border-outline-variant/30">'
+            f'<table class="w-full text-sm"><thead class="bg-surface-container-low"><tr>{head}</tr></thead>'
+            f'<tbody>{body}</tbody></table></div>')
 
 
-def render_docs(project="demo-proj"):
-    """In-app Documentation & Support page (sidebar 'Docs' / 'Support' links point here).
-    Content mirrors docs/INTEGRATIONS.md in the repo — one source of truth, two surfaces."""
-    _code = 'font-mono text-[12px] bg-surface-container-highest px-1.5 py-0.5 rounded text-on-surface'
+def render_docs(project="demo-proj", topic=None):
+    """In-app Documentation & Support (sidebar 'Docs' / 'Support' links point here).
+    An INDEX of topics, each opening on its own page (/docs?topic=<slug>). Content mirrors
+    docs/INTEGRATIONS.md in the repo — one source of truth, two surfaces."""
+    _code = 'font-mono text-[13px] bg-surface-container-highest px-1.5 py-0.5 rounded text-on-surface'
 
     intro = (
         '<p>CloudCap is a <b class="text-on-surface">read-only</b> governance fleet. It connects to your '
@@ -912,13 +924,16 @@ def render_docs(project="demo-proj"):
         'until you explicitly enable a channel on the Policy page.</p>')
 
     github = (
-        '<p>The <b class="text-on-surface">Fix</b> action drafts a Pull Request that codifies the correction '
-        '(e.g. remove a public IAM binding, right-size an instance) against the project’s configured repo. '
-        'The PR is always opened as a <b class="text-on-surface">draft for human review</b> — CloudCap never '
-        'merges.</p>'
-        '<p class="text-xs">This deployment ships with a disk-writing PR backend (no GitHub credentials are '
-        f'installed); proposals are written to <span class="{_code}">eval/prs/</span> and shown inline. To open '
-        'real PRs, add a GitHub host/org/token on the Integrations config — the token goes to Secret Manager.</p>')
+        '<p>The <b class="text-on-surface">Fix</b> action opens a <b class="text-on-surface">real Pull '
+        'Request</b> on the finding’s owning repo with a concrete change — for example, moving a hardcoded '
+        'secret in Terraform to a <span class="' + _code + '">sensitive</span> variable, or tightening a '
+        'public IAM binding. The PR is opened for <b class="text-on-surface">human review</b>; CloudCap never '
+        'merges and has no cloud write access.</p>'
+        '<p>The owning repo is resolved from <b class="text-on-surface">real Terraform state</b> (the Ownership '
+        f'pillar), so a fix routes only to the repo that manages the resource. The GitHub token is a '
+        f'<b class="text-on-surface">fine-grained PAT</b> in <span class="{_code}">Secret Manager</span> '
+        f'(<span class="{_code}">GITHUB_TOKEN</span>) scoped to just that repo — no unrelated repo can be '
+        'touched. Findings with no concrete file fix are shown as advisory (no PR spam).</p>')
 
     secrets = (
         '<p>CloudCap separates <b class="text-on-surface">non-secret config</b> (URLs, project keys, org ids — '
@@ -943,19 +958,68 @@ def render_docs(project="demo-proj"):
         '</ul>'
         '<p class="text-xs">Contact: mayurpawar1@gmail.com</p>')
 
+    # (slug, icon, title, one-line blurb, status badge, full body)
+    topics = [
+        ("overview", "menu_book", "How CloudCap connects",
+         "The read-only governance model and where secrets live.", "", intro),
+        ("gcp", "cloud", "GCP data plane",
+         "The Google APIs and least-privilege roles each scanner uses.", _doc_pill("live", "live"), gcp),
+        ("jira", "confirmation_number", "JIRA integration",
+         "File each finding as a labelled JIRA issue.", _doc_pill("ready"), jira),
+        ("notifications", "notifications", "Notification channels",
+         "Fan findings out to Slack, Email, Teams, PagerDuty, or a webhook.", _doc_pill("per-project"), channels),
+        ("github", "merge", "GitHub Pull Requests",
+         "Fix findings via real, human-approved Pull Requests.", _doc_pill("live", "live"), github),
+        ("secrets", "key", "Secrets & identity",
+         "Secret Manager and the two-identity (bootstrap vs runtime) model.", "", secrets),
+        ("support", "support_agent", "Support",
+         "Docs, install guide, audit trail, and how to get help.", "", support),
+    ]
+    by = {t[0]: t for t in topics}
+
+    def topic_nav(active):
+        pills = ""
+        for slug, icon, title, *_ in topics:
+            on = slug == active
+            cls = ("bg-primary text-on-primary" if on else
+                   "bg-surface border border-outline-variant/40 text-on-surface-variant hover:border-primary/50")
+            pills += (f'<a href="/docs?topic={slug}" class="inline-flex items-center gap-1.5 px-3 py-1.5 '
+                      f'rounded-lg text-sm font-semibold {cls} transition-colors">'
+                      f'<span class="material-symbols-outlined text-base">{icon}</span>{esc(title)}</a>')
+        return f'<div class="flex flex-wrap gap-2 mb-7">{pills}</div>'
+
+    # --- a single topic on its own page ---
+    if topic in by:
+        slug, icon, title, blurb, badge, body = by[topic]
+        content = (
+            '<div class="max-w-4xl">'
+            '<a href="/docs" class="inline-flex items-center gap-1 text-sm text-primary hover:underline mb-4">'
+            '<span class="material-symbols-outlined text-base">arrow_back</span>Documentation index</a>'
+            + topic_nav(slug)
+            + '<div class="flex items-center gap-3 mb-2">'
+            f'<span class="material-symbols-outlined text-primary text-3xl">{icon}</span>'
+            f'<h1 class="text-3xl font-bold text-on-surface">{esc(title)}</h1>{badge}</div>'
+            f'<p class="text-lg text-on-surface-variant mb-5">{esc(blurb)}</p>'
+            '<div class="bg-surface border border-outline-variant/40 rounded-xl p-6 md:p-8 space-y-4 '
+            f'text-base text-on-surface-variant leading-relaxed">{body}</div></div>')
+        return _base_page(content)
+
+    # --- index: a card per topic ---
+    cards = ""
+    for slug, icon, title, blurb, badge, _body in topics:
+        cards += (
+            f'<a href="/docs?topic={slug}" class="block bg-surface border border-outline-variant/40 rounded-xl '
+            'p-6 hover:border-primary/50 hover:shadow-sm transition-all">'
+            '<div class="flex items-center gap-3 mb-2">'
+            f'<span class="material-symbols-outlined text-primary text-2xl">{icon}</span>'
+            f'<h2 class="text-xl font-bold text-on-surface">{esc(title)}</h2>{badge}</div>'
+            f'<p class="text-base text-on-surface-variant leading-relaxed">{esc(blurb)}</p></a>')
     content = (
-        '<div class="max-w-4xl space-y-6">'
-        '<div><h1 class="text-2xl font-bold text-on-surface">Documentation &amp; Support</h1>'
-        '<p class="text-sm text-on-surface-variant mt-1">How CloudCap connects to JIRA, notifications, GitHub, '
-        'and your GCP projects — and where secrets live.</p></div>'
-        + _doc_section("overview", "menu_book", "How CloudCap connects", intro)
-        + _doc_section("gcp", "cloud", "GCP data plane (read-only)", gcp, _doc_pill("live", "live"))
-        + _doc_section("jira", "confirmation_number", "JIRA integration", jira, _doc_pill("ready"))
-        + _doc_section("notifications", "notifications", "Notification channels", channels, _doc_pill("per-project"))
-        + _doc_section("github", "merge", "GitHub Pull Requests", github, _doc_pill("report-only", "report"))
-        + _doc_section("secrets", "key", "Secrets &amp; identity", secrets)
-        + _doc_section("support", "support_agent", "Support", support)
-        + '</div>')
+        '<div class="max-w-5xl">'
+        '<div class="mb-7"><h1 class="text-3xl font-bold text-on-surface">Documentation &amp; Support</h1>'
+        '<p class="text-lg text-on-surface-variant mt-2 max-w-3xl">How CloudCap connects to your GCP projects, '
+        'JIRA, notifications, and GitHub — and where secrets live. Pick a topic.</p></div>'
+        f'<div class="grid grid-cols-1 md:grid-cols-2 gap-5">{cards}</div></div>')
     return _base_page(content)
 
 
@@ -1004,6 +1068,71 @@ def _scan_history():
         '<div class="px-4 py-2.5 border-b border-outline-variant/50">'
         '<h2 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Scan history</h2></div>'
         f'{rows}</section>')
+
+
+def render_history(project="demo-proj", page=1):
+    """Full-page scan history — every governance scan with its profile. Its own page
+    (was a cramped strip on the board)."""
+    from agents.onboarding import OnboardingState
+    from agents.store import load_state
+    hist = load_state("eval/scan_history.json", [])
+    if not isinstance(hist, list) or not hist or not OnboardingState().first_scan_done:
+        return _base_page(
+            '<div class="min-h-[50vh] flex flex-col items-center justify-center text-center">'
+            '<span class="material-symbols-outlined text-on-surface-variant text-4xl mb-3">history</span>'
+            '<h2 class="text-xl font-bold text-on-surface">No scans yet</h2>'
+            '<p class="text-base text-on-surface-variant mt-2 max-w-md">Every governance scan is '
+            'recorded here with its full profile. Run a scan to start the history.</p>'
+            '<a href="/board" class="mt-5 px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-on-primary '
+            'hover:bg-primary/90">Go to board</a></div>')
+
+    per, total = 15, len(hist)
+    pages = max(1, (total + per - 1) // per)
+    page = max(1, min(page, pages))
+    window = hist[(page - 1) * per: page * per]
+
+    def num(v, cls="text-on-surface"):
+        return f'<span class="{cls}">{v}</span>' if v else '<span class="text-on-surface-variant/40">0</span>'
+
+    rows = ""
+    for h in window:
+        live = h.get("mode") == "live"
+        mode = (f'<span class="px-2.5 py-1 rounded text-xs font-bold '
+                + ('bg-primary-container text-on-primary-container">LIVE' if live
+                   else 'bg-surface-container-highest text-on-surface-variant">DEMO') + '</span>')
+        fw = ", ".join(h.get("frameworks", [])) or "—"
+        sav = h.get("savings", 0)
+        rows += (
+            '<tr class="hover:bg-surface-container-low transition-colors align-middle">'
+            f'<td class="px-4 py-3.5 font-mono text-sm text-on-surface whitespace-nowrap">{esc(h.get("ts",""))}</td>'
+            f'<td class="px-4 py-3.5">{mode}</td>'
+            f'<td class="px-4 py-3.5 font-mono text-base text-on-surface">{esc(h.get("target",""))}</td>'
+            f'<td class="px-4 py-3.5 text-center font-bold text-base">{num(h.get("findings",0))}</td>'
+            f'<td class="px-4 py-3.5 text-center">{num(h.get("critical",0), "text-error font-bold")}</td>'
+            f'<td class="px-4 py-3.5 text-center">{num(h.get("high",0), "text-tertiary font-semibold")}</td>'
+            f'<td class="px-4 py-3.5 text-center">{num(h.get("new",0), "text-primary font-semibold")}</td>'
+            f'<td class="px-4 py-3.5 text-center">{num(h.get("resolved",0), "text-on-surface-variant")}</td>'
+            f'<td class="px-4 py-3.5 text-right font-semibold text-base text-tertiary">${sav:,.0f}<span class="text-xs text-on-surface-variant font-normal">/mo</span></td>'
+            f'<td class="px-4 py-3.5 text-sm text-on-surface-variant">{esc(fw)}</td></tr>')
+
+    th = ('<tr class="bg-surface-container-low text-sm uppercase tracking-wider text-on-surface-variant '
+          'border-b border-outline-variant/60">'
+          '<th class="px-4 py-3 font-semibold">When</th><th class="px-4 py-3 font-semibold">Mode</th>'
+          '<th class="px-4 py-3 font-semibold">Target</th><th class="px-4 py-3 font-semibold text-center">Findings</th>'
+          '<th class="px-4 py-3 font-semibold text-center">Critical</th><th class="px-4 py-3 font-semibold text-center">High</th>'
+          '<th class="px-4 py-3 font-semibold text-center">New</th><th class="px-4 py-3 font-semibold text-center">Resolved</th>'
+          '<th class="px-4 py-3 font-semibold text-right">Savings</th><th class="px-4 py-3 font-semibold">Frameworks</th></tr>')
+
+    header = ('<div class="mb-5"><h1 class="text-2xl font-bold text-on-surface">Scan history</h1>'
+              f'<p class="text-base text-on-surface-variant mt-1">{total} governance scan(s) recorded — '
+              'each one is an audited event with its full profile.</p></div>')
+    content = (
+        header +
+        '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
+        '<div class="overflow-x-auto"><table class="w-full text-left text-base">'
+        f'<thead>{th}</thead><tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div>'
+        f'{_pager("/history", page, total, per)}</section>')
+    return _base_page(content)
 
 
 def render_board(project="demo-proj", page=1):
@@ -1098,7 +1227,7 @@ def render_board(project="demo-proj", page=1):
         f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span> · '
         f'<span class="font-semibold">{"LIVE" if d.get("mode")=="live" else "DEMO"}</span></p>'
         + _scan_button("Re-scan") + '</div>')
-    return _base_page(scan_bar + summary_strip + cards + findings + _scan_history())
+    return _base_page(scan_bar + summary_strip + cards + findings)
 
 
 # --- remaining screens ------------------------------------------------------
@@ -1117,11 +1246,11 @@ def _project_status(proj):
     frozen = FreezeStore().get(proj)
     repo, chan = bool(s.get("repo")), bool(s.get("channels"))
     if repo and chan:
-        return ('<span class="inline-flex items-center gap-1 text-xs font-bold text-primary">'
-                '<span class="material-symbols-outlined text-base">check_circle</span>Configured</span>', frozen)
+        return ('<span class="inline-flex items-center gap-1.5 text-sm font-bold text-primary">'
+                '<span class="material-symbols-outlined text-lg">check_circle</span>Configured</span>', frozen)
     label = "Partial" if (repo or chan or frozen) else "Report-only"
-    return ('<span class="inline-flex items-center gap-1 text-xs font-semibold text-tertiary">'
-            f'<span class="material-symbols-outlined text-base">error</span>{label}</span>', frozen)
+    return ('<span class="inline-flex items-center gap-1.5 text-sm font-semibold text-tertiary">'
+            f'<span class="material-symbols-outlined text-lg">error</span>{label}</span>', frozen)
 
 
 # Client-side validation + dynamic channel inputs for the per-project setup form.
@@ -1219,38 +1348,38 @@ def render_sources(project="demo-proj", page=1, setup=None):
     for proj in rows_data[(page - 1) * per: page * per]:
         on = proj in sel
         chk = 'checked=""' if on else ""
-        scope = ('<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-container text-on-primary-container">IN SCOPE</span>'
-                 if on else '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-variant text-on-surface-variant">EXCLUDED</span>')
-        setup_status, _ = _project_status(proj) if on else ('<span class="text-xs text-on-surface-variant">—</span>', None)
-        setup_btn = (f'<a href="/sources?setup={esc(proj)}" class="text-xs text-primary hover:underline">Set up</a>'
+        scope = ('<span class="px-2.5 py-1 rounded text-xs font-bold bg-primary-container text-on-primary-container">IN SCOPE</span>'
+                 if on else '<span class="px-2.5 py-1 rounded text-xs font-bold bg-surface-variant text-on-surface-variant">EXCLUDED</span>')
+        setup_status, _ = _project_status(proj) if on else ('<span class="text-sm text-on-surface-variant">—</span>', None)
+        setup_btn = (f'<a href="/sources?setup={esc(proj)}" class="text-sm text-primary hover:underline">Set up</a>'
                      if on else "")
         body += (
             '<tr class="hover:bg-surface-container-low transition-colors">'
-            f'<td class="px-3 py-2"><input type="checkbox" {chk} value="{esc(proj)}" onchange="ccToggle(this)" '
-            'class="w-4 h-4 rounded border-outline text-primary cursor-pointer"/></td>'
-            f'<td class="px-3 py-2 font-mono text-sm text-on-surface">{esc(proj)}</td>'
-            f'<td class="px-3 py-2 text-xs text-on-surface-variant">{esc(folder_of(proj))}</td>'
-            f'<td class="px-3 py-2">{scope}</td>'
-            f'<td class="px-3 py-2">{setup_status}</td>'
-            f'<td class="px-3 py-2 text-right">{setup_btn}</td></tr>')
+            f'<td class="px-3 py-3.5"><input type="checkbox" {chk} value="{esc(proj)}" onchange="ccToggle(this)" '
+            'class="w-5 h-5 rounded border-outline text-primary cursor-pointer"/></td>'
+            f'<td class="px-3 py-3.5 font-mono text-base text-on-surface">{esc(proj)}</td>'
+            f'<td class="px-3 py-3.5 text-sm text-on-surface-variant">{esc(folder_of(proj))}</td>'
+            f'<td class="px-3 py-3.5">{scope}</td>'
+            f'<td class="px-3 py-3.5">{setup_status}</td>'
+            f'<td class="px-3 py-3.5 text-right">{setup_btn}</td></tr>')
     in_scope = len(sel)
     header = (
-        '<div class="flex items-center justify-between mb-4">'
-        f'<p class="text-xs text-on-surface-variant max-w-2xl">Discovered <b class="text-on-surface">{total}</b> '
+        '<div class="flex items-center justify-between gap-4 mb-5">'
+        f'<p class="text-base text-on-surface-variant max-w-3xl">Discovered <b class="text-on-surface">{total}</b> '
         f'project(s) · <b class="text-on-surface">{in_scope}</b> in scope. Toggle scope (saves instantly); '
         'the green tick shows projects with a repo + channel — a project still scans without them (report-only).</p>'
-        '<form method="POST" action="/sources/discover"><button class="text-xs text-primary hover:underline '
+        '<form method="POST" action="/sources/discover"><button class="text-sm text-primary hover:underline '
         'whitespace-nowrap">↻ Re-discover</button></form></div>')
     panel = _setup_panel(setup) if (setup and setup in sel) else ""
     content = (
         header + panel +
         '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
-        '<table class="w-full text-left"><thead>'
-        '<tr class="bg-surface-container-low text-xs uppercase tracking-wider text-on-surface-variant '
-        'border-b border-outline-variant/60"><th class="px-3 py-2 w-10"></th>'
-        '<th class="px-3 py-2 font-semibold">Project</th><th class="px-3 py-2 font-semibold">Folder</th>'
-        '<th class="px-3 py-2 font-semibold">Scope</th><th class="px-3 py-2 font-semibold">Setup</th>'
-        '<th class="px-3 py-2"></th></tr></thead>'
+        '<table class="w-full text-left text-base"><thead>'
+        '<tr class="bg-surface-container-low text-sm uppercase tracking-wider text-on-surface-variant '
+        'border-b border-outline-variant/60"><th class="px-3 py-3 w-10"></th>'
+        '<th class="px-3 py-3 font-semibold">Project</th><th class="px-3 py-3 font-semibold">Folder</th>'
+        '<th class="px-3 py-3 font-semibold">Scope</th><th class="px-3 py-3 font-semibold">Setup</th>'
+        '<th class="px-3 py-3"></th></tr></thead>'
         f'<tbody class="divide-y divide-outline-variant/60">{body}</tbody></table>'
         f'{_pager("/sources", page, total, per)}</section>'
         '<script>function ccToggle(el){fetch("/sources/toggle",{method:"POST",'
@@ -1497,11 +1626,11 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
     opts = f'<option value="overall"{" selected" if scope in (None, "overall") else ""}>Overall (all projects)</option>'
     for p in sorted(SourcesConfig().selected()):
         opts += f'<option value="{esc(p)}"{" selected" if scope == p else ""}>{esc(p)}</option>'
-    filt = ('<div class="flex flex-col items-end gap-1 shrink-0 pr-1">'
-            '<label class="text-[11px] text-on-surface-variant whitespace-nowrap">Compliance posture per project</label>'
+    filt = ('<div class="flex flex-col items-end gap-1.5 shrink-0 pr-1">'
+            '<label class="text-xs text-on-surface-variant whitespace-nowrap">Compliance posture per project</label>'
             '<select onchange="location.href=\'/compliance?scope=\'+this.value" '
-            'class="bg-surface border border-outline-variant/50 rounded-md pl-2.5 pr-8 py-1.5 text-xs '
-            f'min-w-[13rem] max-w-[16rem] focus:outline-none focus:ring-1 focus:ring-primary">{opts}</select></div>')
+            'class="bg-surface border border-outline-variant/50 rounded-md pl-3 pr-8 py-2 text-sm '
+            f'min-w-[14rem] max-w-[18rem] focus:outline-none focus:ring-1 focus:ring-primary">{opts}</select></div>')
     from agents.compliance import overall_score
     fails = {}  # rule -> [(resource, fp)]
     for f in fd:
@@ -1513,54 +1642,54 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
     compliant = all(p["failing"] == 0 for p in post.values())
     overall = overall_score(post) * 100
     ocol = "primary" if compliant else "error"
-    badge = ('<span class="px-2.5 py-1 rounded text-[11px] font-bold bg-primary-container text-on-primary-container">✓ COMPLIANT</span>'
+    badge = ('<span class="px-3 py-1 rounded text-sm font-bold bg-primary-container text-on-primary-container">✓ COMPLIANT</span>'
              if compliant else
-             '<span class="px-2.5 py-1 rounded text-[11px] font-bold bg-error-container text-on-error-container">✗ NON-COMPLIANT</span>')
+             '<span class="px-3 py-1 rounded text-sm font-bold bg-error-container text-on-error-container">✗ NON-COMPLIANT</span>')
     headline = (
-        '<div class="flex items-center justify-between mb-5"><div class="flex items-center gap-3">'
-        f'<div class="text-3xl font-bold text-{ocol}">{overall:.0f}%</div>'
-        '<div><div class="text-xs uppercase tracking-wider text-on-surface-variant">Overall compliance</div>'
+        '<div class="flex items-center justify-between mb-5"><div class="flex items-center gap-4">'
+        f'<div class="text-5xl font-bold text-{ocol}">{overall:.0f}%</div>'
+        '<div class="space-y-1"><div class="text-sm uppercase tracking-wider text-on-surface-variant">Overall compliance</div>'
         f'{badge}</div></div>{filt}</div>')
 
     # --- colored cell: framework control id, green=pass / red=fail(click→finding) / — ---
     def cell(rule, fw):
         cid = CONTROLS[rule].get(fw, "")
         if not cid:
-            return '<td class="px-2 py-1.5 text-center text-on-surface-variant/40">—</td>'
+            return '<td class="px-3 py-3.5 text-center text-base text-on-surface-variant/40">—</td>'
         if rule in fails:
             flist = fails[rule]
             fp, n = flist[0][1], len(flist)
-            badge = f'<sup class="text-[9px] ml-0.5">×{n}</sup>' if n > 1 else ""
+            badge = f'<sup class="text-[11px] ml-0.5">×{n}</sup>' if n > 1 else ""
             tip = f"{n} finding(s): " + ", ".join(f"{r} ({f})" for r, f in flist)
-            return (f'<td class="px-2 py-1.5 text-center bg-error-container/40"><a href="/finding?fp={esc(fp)}" '
-                    f'title="{esc(tip)}" class="font-mono text-xs text-error font-semibold hover:underline">{esc(cid)}{badge}</a></td>')
-        return (f'<td class="px-2 py-1.5 text-center bg-primary-container/40">'
-                f'<span class="font-mono text-xs text-primary">{esc(cid)}</span></td>')
+            return (f'<td class="px-3 py-3.5 text-center bg-error-container/40"><a href="/finding?fp={esc(fp)}" '
+                    f'title="{esc(tip)}" class="font-mono text-base text-error font-semibold hover:underline">{esc(cid)}{badge}</a></td>')
+        return (f'<td class="px-3 py-3.5 text-center bg-primary-container/40">'
+                f'<span class="font-mono text-base text-primary">{esc(cid)}</span></td>')
 
     rows = ""
     for rule, m in CONTROLS.items():
         failing = rule in fails
-        rstat = (f'<span class="inline-flex items-center gap-1 text-[10px] font-bold text-{"error" if failing else "primary"}">'
-                 f'<span class="w-1.5 h-1.5 rounded-full bg-{"error" if failing else "primary"}"></span>{"FAIL" if failing else "PASS"}</span>')
+        rstat = (f'<span class="inline-flex items-center gap-1.5 text-xs font-bold text-{"error" if failing else "primary"}">'
+                 f'<span class="w-2 h-2 rounded-full bg-{"error" if failing else "primary"}"></span>{"FAIL" if failing else "PASS"}</span>')
         cells = "".join(cell(rule, fw) for fw in FRAMEWORKS)
         rows += ('<tr class="hover:bg-surface-container-low transition-colors">'
-                 f'<td class="px-2 py-1.5 font-semibold text-on-surface">{esc(m["name"])}</td>'
-                 f'<td class="px-2 py-1.5">{rstat}</td>{cells}</tr>')
+                 f'<td class="px-3 py-3.5 font-semibold text-base text-on-surface">{esc(m["name"])}</td>'
+                 f'<td class="px-3 py-3.5">{rstat}</td>{cells}</tr>')
 
-    foot = '<td colspan="2" class="px-2 py-1.5 font-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Framework score</td>'
+    foot = '<td colspan="2" class="px-3 py-3 font-bold text-on-surface-variant uppercase tracking-wider text-sm">Framework score</td>'
     for fw in FRAMEWORKS:
         p = post[fw]
         col = "primary" if p["failing"] == 0 else "tertiary" if p["score"] >= 0.5 else "error"
-        foot += (f'<td class="px-2 py-1.5 text-center"><div class="font-bold text-{col}">{p["score"] * 100:.0f}%</div>'
-                 f'<div class="text-[10px] text-on-surface-variant">{p["passing"]}/{p["total"]}</div></td>')
+        foot += (f'<td class="px-3 py-3 text-center"><div class="font-bold text-lg text-{col}">{p["score"] * 100:.0f}%</div>'
+                 f'<div class="text-xs text-on-surface-variant">{p["passing"]}/{p["total"]}</div></td>')
 
-    th = "".join(f'<th class="px-2 py-1.5 text-center font-semibold">{esc(fw)}</th>' for fw in FRAMEWORKS)
+    th = "".join(f'<th class="px-3 py-3 text-center font-semibold text-sm">{esc(fw)}</th>' for fw in FRAMEWORKS)
 
     # --- coverage caption: controls in scope vs full catalog ---
     from agents.compliance import FRAMEWORK_TOTALS
     in_scope = sum(p["total"] for p in post.values())
     catalog = sum(FRAMEWORK_TOTALS.values())
-    coverage = (f'<p class="text-[11px] text-on-surface-variant mb-4">Scored against '
+    coverage = (f'<p class="text-sm text-on-surface-variant mb-5">Scored against '
                 f'<span class="font-semibold text-on-surface">{in_scope}</span> in-scope controls '
                 f'of {catalog} across all frameworks — set by the control groups below.</p>')
 
@@ -1570,30 +1699,30 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
         for g in GROUPS[fw]:
             on = g["key"] in enabled[fw]
             if g["locked"]:
-                chips += (f'<label class="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-surface-container-low '
-                          'border border-outline-variant/40 text-xs opacity-90" title="Mandatory baseline — always in scope">'
-                          '<input type="checkbox" checked disabled class="accent-primary"/>'
+                chips += (f'<label class="flex items-center gap-2 px-3 py-2.5 rounded-md bg-surface-container-low '
+                          'border border-outline-variant/40 text-sm opacity-90" title="Mandatory baseline — always in scope">'
+                          '<input type="checkbox" checked disabled class="accent-primary w-4 h-4"/>'
                           f'<span class="text-on-surface">{esc(g["name"])}</span>'
-                          f'<span class="text-[10px] text-on-surface-variant">{g["count"]}</span>'
-                          '<span class="text-[9px] font-bold text-primary uppercase tracking-wider ml-auto">Required</span></label>')
+                          f'<span class="text-xs text-on-surface-variant">{g["count"]}</span>'
+                          '<span class="text-[10px] font-bold text-primary uppercase tracking-wider ml-auto">Required</span></label>')
             else:
-                chips += (f'<label class="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-surface '
-                          'border border-outline-variant/40 text-xs hover:border-primary/40 cursor-pointer">'
-                          f'<input type="checkbox" {"checked" if on else ""} class="accent-primary" '
+                chips += (f'<label class="flex items-center gap-2 px-3 py-2.5 rounded-md bg-surface '
+                          'border border-outline-variant/40 text-sm hover:border-primary/40 cursor-pointer">'
+                          f'<input type="checkbox" {"checked" if on else ""} class="accent-primary w-4 h-4" '
                           f'data-fw="{esc(fw)}" data-key="{esc(g["key"])}" onchange="ccScope(this)"/>'
                           f'<span class="text-on-surface">{esc(g["name"])}</span>'
-                          f'<span class="text-[10px] text-on-surface-variant ml-auto">{g["count"]}</span></label>')
-        return (f'<div class="space-y-1.5"><div class="text-[11px] font-bold uppercase tracking-wider '
-                f'text-on-surface-variant mb-1">{esc(fw)}</div>{chips}</div>')
+                          f'<span class="text-xs text-on-surface-variant ml-auto">{g["count"]}</span></label>')
+        return (f'<div class="space-y-2"><div class="text-xs font-bold uppercase tracking-wider '
+                f'text-on-surface-variant mb-1.5">{esc(fw)}</div>{chips}</div>')
 
     scope_panel = (
-        '<section class="bg-surface border border-outline-variant/40 rounded-lg p-4 mt-6">'
+        '<section class="bg-surface border border-outline-variant/40 rounded-lg p-6 mt-6">'
         '<div class="flex items-center justify-between mb-1">'
-        '<h3 class="text-sm font-bold text-on-surface">Control groups in scope</h3>'
-        '<span class="text-[10px] text-on-surface-variant">Admin · applies to the score above</span></div>'
-        '<p class="text-[11px] text-on-surface-variant mb-3">Enable optional groups to widen the audit denominator. '
+        '<h3 class="text-lg font-bold text-on-surface">Control groups in scope</h3>'
+        '<span class="text-xs text-on-surface-variant">Admin · applies to the score above</span></div>'
+        '<p class="text-sm text-on-surface-variant mb-4">Enable optional groups to widen the audit denominator. '
         'The baseline group of each framework is mandatory and cannot be disabled.</p>'
-        '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">'
+        '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">'
         + "".join(group_panel(fw) for fw in FRAMEWORKS) +
         '</div></section>'
         '<script>function ccScope(el){fetch("/compliance/scope/toggle",{method:"POST",'
@@ -1604,13 +1733,13 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
     content = (
         headline + coverage +
         '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
-        '<div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead>'
-        '<tr class="bg-surface-container-low text-xs uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/60">'
-        f'<th class="px-2 py-1.5 font-semibold">Control</th><th class="px-2 py-1.5 font-semibold">Status</th>{th}</tr></thead>'
+        '<div class="overflow-x-auto"><table class="w-full text-left text-base"><thead>'
+        '<tr class="bg-surface-container-low text-sm uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/60">'
+        f'<th class="px-3 py-3 font-semibold">Control</th><th class="px-3 py-3 font-semibold">Status</th>{th}</tr></thead>'
         f'<tbody class="divide-y divide-outline-variant/60">{rows}</tbody>'
         f'<tfoot><tr class="border-t-2 border-outline-variant/60 bg-surface-container-low">{foot}</tr></tfoot>'
         '</table></div>'
-        '<div class="px-3 py-2 border-t border-outline-variant/50 text-[11px] text-on-surface-variant">'
+        '<div class="px-4 py-3 border-t border-outline-variant/50 text-sm text-on-surface-variant">'
         'Red cell = failing control — click it to open the finding. Green = passing. — = not applicable to that framework.</div>'
         '</section>' + scope_panel)
     return _base_page(content)
