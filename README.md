@@ -60,6 +60,3 @@ python -m agents.run --project YOUR_TEST_PROJECT   # (entrypoint added D5)
 ## Repo layout
 See `BLUEPRINT.md` §9. Strategy, 13-day plan, and demo script live in `BLUEPRINT.md`.
 
-## Credits / hackathon note
-Request the $150 hackathon credits **before Aug 28, 12:00pm PT**. All resources
-fit within credits; run `terraform destroy` in `chaos-env` after the demo.
