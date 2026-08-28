@@ -69,6 +69,11 @@ def _inject_js(html):
 PAGE_SIZE_FINDINGS = 10
 PAGE_SIZE_CONTROLS = 10
 
+# Secondary (non-primary) button — soft taupe with a forest-green outline (reference
+# design). Primary CTAs stay solid green; everything else uses this.
+BTN_2ND = ("bg-[#ece6dc] text-primary border border-primary/25 rounded-lg font-semibold "
+           "hover:bg-primary hover:text-on-primary transition-colors")
+
 
 def _pager(base, page, total, per):
     if total <= per:            # nothing to paginate — hide the pager entirely
@@ -144,6 +149,14 @@ def restyle(html):
     html = html.replace("\x00L\x00", "bg-surface-container-lowest")
     # global density + a faint dot-grid canvas behind the cards
     style = ("<style>html{font-size:14px}"
+             # checkboxes / radios in the forest-green theme. The @tailwindcss/forms plugin
+             # makes them appearance:none and colours the CHECKED state via background-color
+             # (default blue-600), so override that (not accent-color) to the primary green.
+             "input[type=checkbox]:checked,input[type=radio]:checked{"
+             "background-color:#316342 !important;border-color:#316342 !important}"
+             "input[type=checkbox]:focus,input[type=radio]:focus{"
+             "--tw-ring-color:#316342 !important}"
+             "input[type=checkbox],input[type=radio]{accent-color:#316342 !important}"
              "main{background-color:#fdf9f3;background-image:radial-gradient(circle at 1px 1px,"
              "rgba(28,28,24,0.045) 1px,transparent 0);background-size:20px 20px}"
              "main>header{background-image:none}"
@@ -481,7 +494,21 @@ def _findings_rows(fd, hist):
                         'bg-surface-variant text-on-surface-variant border border-outline-variant/30 whitespace-nowrap">'
                         '<span class="material-symbols-outlined text-sm">pan_tool</span>Unmanaged · ClickOps</span>')
 
+        if ostatus == "managed":
+            own_text = f"Managed · {md.get('owner_repo','')}"
+        elif ostatus == "conflict":
+            own_text = "Conflict · multiple Terraform states"
+        else:
+            own_text = "Unmanaged · ClickOps (in no Terraform state)"
+
         fp = esc(f.get("fingerprint", ""))
+        # Hover-preview data (IDE-style popover on the Finding ID — see the JS in render_board).
+        save_txt = f"${sv:,.0f}/mo" if sv else ""
+        action_txt = (f.get("recommended_action") or "")[:220]
+        id_link = (f'<a href="/finding?fp={fp}" class="cc-fid text-primary font-mono text-sm hover:underline" '
+                   f'data-title="{esc(f["title"])}" data-sev="{esc(sev)}" data-cat="{esc(cat)}" '
+                   f'data-res="{res}" data-save="{esc(save_txt)}" data-own="{esc(own_text)}" '
+                   f'data-action="{esc(action_txt)}">{fp}</a>')
         accept = (
             '<form method="POST" action="/suppress" class="flex justify-end items-center gap-2 '
             'opacity-0 group-hover:opacity-100 transition-opacity">'
@@ -492,12 +519,11 @@ def _findings_rows(fd, hist):
             '<option value="week">7 days</option></select>'
             '<input name="reason" class="bg-surface border-outline-variant/30 text-on-surface text-xs '
             'rounded-lg py-1 px-2 w-24" placeholder="reason" type="text"/>'
-            '<button type="submit" class="bg-surface-variant hover:bg-surface-container-high text-on-surface '
-            'px-3 py-1 rounded-lg text-xs font-semibold border border-outline-variant/30">Accept</button></form>')
+            f'<button type="submit" class="{BTN_2ND} px-3 py-1 text-xs">Accept</button></form>')
 
         rows += (
             '<tr class="hover:bg-surface-container-lowest transition-colors group">'
-            f'<td class="px-3 py-2.5 whitespace-nowrap"><a href="/finding?fp={fp}" class="text-primary font-mono text-sm hover:underline">{fp}</a></td>'
+            f'<td class="px-3 py-2.5 whitespace-nowrap">{id_link}</td>'
             f'<td class="px-3 py-2.5">{sevbadge}</td>'
             f'<td class="px-3 py-2.5 text-on-surface">{cat_cell}</td>'
             f'<td class="px-3 py-2.5 text-on-surface">{res_cell}</td>'
@@ -506,6 +532,53 @@ def _findings_rows(fd, hist):
             f'<td class="px-3 py-2.5">{own_cell}</td>'
             f'<td class="px-3 py-2.5 text-right">{accept}</td></tr>')
     return rows
+
+
+def _fid_tooltip():
+    """IDE-style hover popover for a Finding ID — a single floating card that reads the
+    hovered link's data-* attributes and shows a preview (title, severity, resource,
+    ownership, recommended action) + a clickable link to the full finding. Interactive
+    (a short hover-bridge keeps it open while you move into it). Text-escaped in JS."""
+    return """
+<div id="cc-fidtip" class="hidden fixed z-50 w-[30rem] max-w-[94vw] bg-surface border border-[#e0dbd1] rounded-lg shadow-xl p-5"></div>
+<script>(function(){
+  var SEV={critical:"bg-error-container text-on-error-container",high:"bg-tertiary-container text-on-tertiary-container",medium:"bg-surface-variant text-on-surface-variant",low:"bg-surface-variant text-on-surface-variant"};
+  var tip=document.getElementById("cc-fidtip"); if(!tip) return;
+  var timer=null;
+  function esc(s){var d=document.createElement("div");d.textContent=s||"";return d.innerHTML;}
+  function place(el){
+    var r=el.getBoundingClientRect(), tw=tip.offsetWidth, th=tip.offsetHeight, m=12;
+    var left=r.right+10; if(left+tw>window.innerWidth-m) left=r.left-tw-10; if(left<m) left=m;
+    var top=r.bottom+8;                                  // prefer below the ID
+    if(top+th>window.innerHeight-m) top=r.top-th-8;      // no room below → flip above
+    if(top<m) top=window.innerHeight-th-m;               // still off → pin fully in view
+    if(top<m) top=m;
+    tip.style.left=left+"px"; tip.style.top=top+"px";
+  }
+  function show(el){
+    var d=el.dataset, sev=(d.sev||"").toLowerCase();
+    var h="<div class='font-semibold text-on-surface mb-1.5 leading-snug'>"+esc(d.title)+"</div>";
+    h+="<div class='flex items-center gap-2 mb-2'>";
+    h+="<span class='px-2 py-0.5 rounded text-xs font-bold uppercase "+(SEV[sev]||SEV.low)+"'>"+esc(d.sev)+"</span>";
+    h+="<span class='text-xs text-on-surface-variant capitalize'>"+esc(d.cat)+"</span>";
+    if(d.save)h+="<span class='ml-auto text-tertiary font-bold text-sm'>"+esc(d.save)+"</span>";
+    h+="</div>";
+    h+="<div class='font-mono text-xs text-on-surface-variant break-all mb-2'>"+esc(d.res)+"</div>";
+    h+="<div class='text-sm text-on-surface mb-2'><span class='font-semibold'>Ownership:</span> "+esc(d.own)+"</div>";
+    if(d.action)h+="<div class='text-sm text-on-surface-variant border-t border-outline-variant/40 pt-2 mb-3 leading-relaxed'>"+esc(d.action)+"</div>";
+    h+="<a href='"+esc(el.getAttribute('href'))+"' class='inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline'>Open full finding &rarr;</a>";
+    tip.innerHTML=h; tip.classList.remove("hidden"); place(el);
+  }
+  function hide(){tip.classList.add("hidden");}
+  function later(){timer=setTimeout(hide,220);}
+  function keep(){if(timer){clearTimeout(timer);timer=null;}}
+  tip.addEventListener("mouseenter",keep);
+  tip.addEventListener("mouseleave",later);
+  document.querySelectorAll(".cc-fid").forEach(function(el){
+    el.addEventListener("mouseenter",function(){keep();show(el);});
+    el.addEventListener("mouseleave",later);
+  });
+})();</script>"""
 
 
 # --- assemble ---------------------------------------------------------------
@@ -803,13 +876,18 @@ def render_hub(project="demo-proj"):
             caps = ", ".join(a.get("capabilities", []))
             depts = " ".join(f'<span class="px-2 py-0.5 rounded bg-surface-container text-xs '
                              f'text-on-surface-variant">{esc(d)}</span>' for d in a.get("departments", []))
+            name = a.get("name", "")
+            logs = (f'<a href="/logs?agent={esc(name)}" class="inline-flex items-center gap-1 text-primary '
+                    'hover:underline text-sm" title="View this agent\'s Cloud Logging audit events">'
+                    '<span class="material-symbols-outlined text-base">receipt_long</span>logs</a>')
             rows += ('<tr class="hover:bg-surface-container-low">'
-                     f'<td class="px-3 py-3 font-semibold text-base text-on-surface">{esc(a.get("name",""))}</td>'
+                     f'<td class="px-3 py-3 font-semibold text-base text-on-surface">{esc(name)}</td>'
                      f'<td class="px-3 py-3 text-sm text-on-surface-variant">v{esc(a.get("version",""))}</td>'
                      f'<td class="px-3 py-3 text-sm text-on-surface-variant">{depts}</td>'
                      f'<td class="px-3 py-3 text-sm text-on-surface-variant">{esc(caps)}</td>'
                      f'<td class="px-3 py-3 text-sm font-mono text-on-surface-variant">{esc(sa)}</td>'
-                     f'<td class="px-3 py-3 text-sm font-bold">{badge}</td></tr>')
+                     f'<td class="px-3 py-3 text-sm font-bold">{badge}</td>'
+                     f'<td class="px-3 py-3">{logs}</td></tr>')
         registry_section = (
             '<section class="bg-surface border border-[#d4d4d8] rounded-lg shadow-sm overflow-hidden mb-6">'
             '<div class="px-4 py-3 border-b border-outline-variant/50 flex items-center justify-between">'
@@ -821,7 +899,8 @@ def render_hub(project="demo-proj"):
             '<tr class="bg-surface-container text-sm uppercase tracking-wider text-on-surface-variant '
             'border-b border-outline-variant/60"><th class="px-3 py-3">Agent</th><th class="px-3 py-3">Version</th>'
             '<th class="px-3 py-3">Departments</th><th class="px-3 py-3">Capabilities</th>'
-            '<th class="px-3 py-3">Identity (service account)</th><th class="px-3 py-3">Verified</th></tr>'
+            '<th class="px-3 py-3">Identity (service account)</th><th class="px-3 py-3">Verified</th>'
+            '<th class="px-3 py-3">Logs</th></tr>'
             f'</thead><tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div></section>')
 
     return _base_page(summary + table("Agents (the fleet)", agents, "Agent")
@@ -954,6 +1033,24 @@ def render_docs(project="demo-proj", topic=None):
         '<p class="text-xs">Two-identity model: Terraform apply runs as an <b>owner</b> (bootstrap); the running '
         f'app uses the least-privilege <span class="{_code}">cc-runtime</span> SA, which cannot write to your cloud.</p>')
 
+    auth = (
+        '<p>Dashboard sign-in is <b class="text-on-surface">pluggable</b> — set '
+        f'<span class="{_code}">CLOUDCAP_AUTH_PROVIDER</span> to choose how users authenticate. The security '
+        'model is identical for every provider: a verified identity becomes '
+        f'<span class="{_code}">{{email, name, picture}}</span>, then a shared allowlist + role mapping '
+        '(admin / operator) applies. Only the credential-verification step differs.</p>'
+        + _doc_table([
+            ('firebase', 'Google &amp; email sign-in via Firebase Auth', 'current default · verified with the Firebase Admin SDK'),
+            ('oidc', 'Any OIDC IdP — Microsoft Entra ID (Azure AD), Okta, Google Workspace', 'ID token verified against the IdP JWKS'),
+            ('proxy', 'Enterprise SSO terminated at a gateway — Google IAP, oauth2-proxy, Cloudflare Access', 'identity trusted from the gateway header (X-Goog-Authenticated-User-Email, X-Auth-Request-Email, …)'),
+            ('dev', 'Local development login', 'no external IdP'),
+        ], headers=("Provider", "How users sign in", "Verification"))
+        + '<p>The allowlist + role mapping is <b class="text-on-surface">provider-agnostic</b> — set admins via '
+        f'<span class="{_code}">CLOUDCAP_ADMINS</span> (or <span class="{_code}">webui/users.json</span>). So '
+        'switching from Firebase to <b class="text-on-surface">Entra ID / Azure AD</b> (OIDC), or fronting the '
+        'app with <b class="text-on-surface">IAP</b> for AD/Okta/Workspace SSO, is a configuration change — the '
+        'app logic and session handling do not change. Code: <span class="' + _code + '">webui/auth.py</span>.</p>')
+
     support = (
         '<p>Need help, or found something off in a finding?</p>'
         '<ul class="list-disc pl-5 space-y-1">'
@@ -982,6 +1079,8 @@ def render_docs(project="demo-proj", topic=None):
          "Fix findings via real, human-approved Pull Requests.", _doc_pill("live", "live"), github),
         ("secrets", "key", "Secrets & identity",
          "Secret Manager and the two-identity (bootstrap vs runtime) model.", "", secrets),
+        ("auth", "lock_person", "Authentication",
+         "Pluggable sign-in — Firebase now, extensible to Entra ID / Okta / IAP.", _doc_pill("ready"), auth),
         ("support", "support_agent", "Support",
          "Docs, install guide, audit trail, and how to get help.", "", support),
     ]
@@ -1033,17 +1132,20 @@ def render_docs(project="demo-proj", topic=None):
     return _base_page(content)
 
 
-def _scan_button(label="Run scan", big=False):
+def _scan_button(label="Run scan", big=False, secondary=False):
     """A scan button that disables + shows a spinner on click (the scan is synchronous,
-    so this is the 'scan initiated' feedback until the page reloads with results)."""
+    so this is the 'scan initiated' feedback until the page reloads with results).
+    secondary=True uses the taupe outline style (for a lower-key 'Re-scan')."""
     size = "px-6 py-3" if big else "px-4 py-2"
+    style = (f"{BTN_2ND} text-sm" if secondary
+             else "rounded-lg text-sm font-bold bg-primary text-on-primary hover:bg-primary/90")
     js = ("var b=this.querySelector('button');b.disabled=true;"
           "b.innerHTML='<span class=\\'material-symbols-outlined text-base animate-spin\\'>progress_activity</span>"
           " Scanning… (up to ~1 min)';")
     return (
         f'<form method="POST" action="/scan/run" onsubmit="{js}">'
-        f'<button type="submit" class="{size} rounded-lg text-sm font-bold bg-primary text-on-primary '
-        'hover:bg-primary/90 inline-flex items-center gap-2 disabled:opacity-80 disabled:cursor-wait">'
+        f'<button type="submit" class="{size} {style} '
+        'inline-flex items-center gap-2 disabled:opacity-80 disabled:cursor-wait">'
         f'<span class="material-symbols-outlined text-base">radar</span>{esc(label)}</button></form>')
 
 
@@ -1080,6 +1182,53 @@ def _scan_history():
         f'{rows}</section>')
 
 
+_ACT_ICON = {"scan_run": "radar", "deliver": "merge", "guardrail_block": "shield",
+             "slack_notify": "notifications", "email_notify": "mail",
+             "suppressions_applied": "filter_alt", "pr_suppressed_freeze": "ac_unit"}
+
+
+def render_logs(project, entries, title, subtitle, back_url, back_active):
+    """Render real Cloud Logging audit entries (from agents.audit_reader) as a page."""
+    back = (f'<a href="{esc(back_url)}" class="inline-flex items-center gap-1 text-sm text-primary '
+            'hover:underline mb-4"><span class="material-symbols-outlined text-base">arrow_back</span>Back</a>')
+    head = (f'{back}<div class="mb-5"><h1 class="text-2xl font-bold text-on-surface">{esc(title)}</h1>'
+            f'<p class="text-base text-on-surface-variant mt-1">{esc(subtitle)}</p></div>')
+    if not entries:
+        return _base_page(
+            head + '<section class="bg-surface border border-outline-variant/40 rounded-lg p-8 text-center">'
+            '<span class="material-symbols-outlined text-on-surface-variant text-4xl">receipt_long</span>'
+            '<p class="text-base text-on-surface-variant mt-2">No audit entries found. The trail may be empty, '
+            'or the reader lacks <span class="font-mono text-sm">roles/logging.viewer</span>.</p></section>')
+    rows = ""
+    for e in entries:
+        det = e.get("detail")
+        det = ", ".join(f"{k}={v}" for k, v in det.items()) if isinstance(det, dict) else str(det or "")
+        icon = _ACT_ICON.get(e.get("action", ""), "chevron_right")
+        rows += ('<tr class="hover:bg-surface-container-low align-top">'
+                 f'<td class="px-4 py-2.5 font-mono text-xs text-on-surface-variant whitespace-nowrap">{esc(e.get("ts",""))}</td>'
+                 '<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded bg-surface-container text-xs font-semibold '
+                 f'text-on-surface whitespace-nowrap">{esc(e.get("agent",""))}</span></td>'
+                 '<td class="px-4 py-2.5 font-semibold text-on-surface whitespace-nowrap">'
+                 f'<span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-base '
+                 f'text-on-surface-variant">{icon}</span>{esc(e.get("action",""))}</span></td>'
+                 f'<td class="px-4 py-2.5 text-sm text-on-surface-variant">{esc(det[:200])}</td>'
+                 f'<td class="px-4 py-2.5 font-mono text-xs text-on-surface-variant/70" title="hash-chained">{esc(e.get("hash",""))}</td></tr>')
+    content = (
+        head +
+        '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
+        '<div class="px-4 py-2.5 border-b border-outline-variant/50 flex items-center gap-2">'
+        '<span class="material-symbols-outlined text-primary text-lg">verified_user</span>'
+        f'<span class="text-sm text-on-surface-variant">{len(entries)} entries · hash-chained · immutable Cloud Logging '
+        '(<span class="font-mono">cloudcap-audit</span>)</span></div>'
+        '<div class="overflow-x-auto"><table class="w-full text-left text-base"><thead>'
+        '<tr class="bg-surface-container-low text-sm uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/60">'
+        '<th class="px-4 py-3 font-semibold">Time (UTC)</th><th class="px-4 py-3 font-semibold">Agent</th>'
+        '<th class="px-4 py-3 font-semibold">Action</th><th class="px-4 py-3 font-semibold">Detail</th>'
+        '<th class="px-4 py-3 font-semibold">Chain hash</th></tr></thead>'
+        f'<tbody class="divide-y divide-outline-variant/60">{rows}</tbody></table></div></section>')
+    return _base_page(content)
+
+
 def render_history(project="demo-proj", page=1):
     """Full-page scan history — every governance scan with its profile. Its own page
     (was a cramped strip on the board)."""
@@ -1114,7 +1263,9 @@ def render_history(project="demo-proj", page=1):
         sav = h.get("savings", 0)
         rows += (
             '<tr class="hover:bg-surface-container-low transition-colors align-middle">'
-            f'<td class="px-4 py-3.5 font-mono text-sm text-on-surface whitespace-nowrap">{esc(h.get("ts",""))}</td>'
+            f'<td class="px-4 py-3.5 font-mono text-sm whitespace-nowrap"><a href="/logs?ts={esc(h.get("ts",""))}" '
+            'class="inline-flex items-center gap-1 text-primary hover:underline" title="View the Cloud Logging audit trail">'
+            f'<span class="material-symbols-outlined text-base">receipt_long</span>{esc(h.get("ts",""))}</a></td>'
             f'<td class="px-4 py-3.5">{mode}</td>'
             f'<td class="px-4 py-3.5 font-mono text-base text-on-surface">{esc(h.get("target",""))}</td>'
             f'<td class="px-4 py-3.5 text-center font-bold text-base">{num(h.get("findings",0))}</td>'
@@ -1236,8 +1387,8 @@ def render_board(project="demo-proj", page=1):
         '<div class="flex items-center justify-between mb-4">'
         f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span> · '
         f'<span class="font-semibold">{"LIVE" if d.get("mode")=="live" else "DEMO"}</span></p>'
-        + _scan_button("Re-scan") + '</div>')
-    return _base_page(scan_bar + summary_strip + cards + findings)
+        + _scan_button("Re-scan", secondary=True) + '</div>')
+    return _base_page(scan_bar + summary_strip + cards + findings + _fid_tooltip())
 
 
 # --- remaining screens ------------------------------------------------------
@@ -1351,7 +1502,7 @@ def render_sources(project="demo-proj", page=1, setup=None):
     from agents.sources import folder_of
     sel = SourcesConfig().selected()
     rows_data = all_projects()
-    per, total = 8, len(rows_data)
+    per, total = 10, len(rows_data)
     pages = max(1, (total + per - 1) // per)
     page = max(1, min(page, pages))
     body = ""
@@ -1378,7 +1529,7 @@ def render_sources(project="demo-proj", page=1, setup=None):
         f'<p class="text-base text-on-surface-variant max-w-3xl">Discovered <b class="text-on-surface">{total}</b> '
         f'project(s) · <b class="text-on-surface">{in_scope}</b> in scope. Toggle scope (saves instantly); '
         'the green tick shows projects with a repo + channel — a project still scans without them (report-only).</p>'
-        '<form method="POST" action="/sources/discover"><button class="text-sm text-primary hover:underline '
+        f'<form method="POST" action="/sources/discover"><button class="{BTN_2ND} px-3 py-2 text-sm '
         'whitespace-nowrap">↻ Re-discover</button></form></div>')
     panel = _setup_panel(setup) if (setup and setup in sel) else ""
     content = (
@@ -1495,10 +1646,11 @@ def _replace_nth(html, pattern, repl, n):
 
 
 # One combined policy row = 9 checks: two major sections, each with sub-sections.
-POLICY_COLS = [("pr", "PR"), ("issue", "Issue"), ("slack", "Slack"),
+POLICY_COLS = [("pr", "PR"), ("issue", "Issue"), ("slack", "Slack"), ("email", "Email"),
                ("cost", "Cost"), ("security", "Security"),
                ("CIS GCP", "CIS GCP"), ("SOC 2", "SOC 2"), ("ISO 27001", "ISO 27001"), ("PCI DSS", "PCI DSS")]
-ACTION_FIELDS = {"pr", "issue", "slack"}
+ACTION_FIELDS = {"pr", "issue", "slack", "email"}
+FRAMEWORK_FIELDS = {"CIS GCP", "SOC 2", "ISO 27001", "PCI DSS"}
 
 
 def render_policy(project="demo-proj", page=1):
@@ -1520,15 +1672,23 @@ def render_policy(project="demo-proj", page=1):
     from agents.jira import JiraConfig
     jira_ok = JiraConfig().configured
 
+    def _has_channel(scope, kind):
+        return any((c.get("type") == kind) for c in ps.channels(scope))
+
     def gated(scope, field):
         """An action is available only if its integration is set up: PR needs a repo,
-        Slack needs a channel (both per-project in Sources), Issue needs JIRA (global)."""
+        Slack/Email need that channel (per-project in Sources), Issue needs JIRA (global).
+        Compliance frameworks require the Security domain to be enabled for the project."""
         if field == "pr" and not ps.repo(scope):
             return "Add a repo in Sources to enable PRs"
-        if field == "slack" and not ps.channels(scope):
-            return "Add a channel in Sources to enable alerts"
+        if field == "slack" and not _has_channel(scope, "slack"):
+            return "Add a Slack channel in Sources to enable Slack alerts"
+        if field == "email" and not _has_channel(scope, "email"):
+            return "Add an email address in Sources to enable email alerts"
         if field == "issue" and not jira_ok:
             return "Configure JIRA below to enable issues"
+        if field in FRAMEWORK_FIELDS and not gov.profile_for(scope).get("security"):
+            return "Enable the Security domain to scope compliance frameworks"
         return ""
 
     if not scopes:
@@ -1553,24 +1713,29 @@ def render_policy(project="demo-proj", page=1):
                           'opacity-30 cursor-not-allowed"/></td>')
             else:
                 chk = 'checked=""' if val(scope, field) else ""
+                # The Security domain gates the frameworks — highlight it as the control.
+                ring = " ring-2 ring-primary/40 ring-offset-1" if field == "security" else ""
                 cells += (f'<td class="px-2 py-2.5 text-center{sep(field)}"><input type="checkbox" {chk} '
                           f'data-scope="{esc(scope)}" data-field="{esc(field)}" onchange="ccPol(this)" '
-                          f'class="w-4 h-4 rounded border-outline {accent} cursor-pointer"/></td>')
+                          f'class="w-4 h-4 rounded border-outline {accent}{ring} cursor-pointer"/></td>')
         rows += ('<tr class="hover:bg-surface-container-low transition-colors">'
                  f'<td class="px-3 py-2.5 whitespace-nowrap font-mono text-base">{esc(scope)}</td>{cells}</tr>')
 
     hdr = ('<thead class="text-on-surface-variant">'
-           '<tr class="bg-surface-container-low border-b border-outline-variant/50 text-[11px] uppercase tracking-wider">'
-           '<th rowspan="3" class="px-3 py-2 text-left font-semibold align-bottom">Scope</th>'
-           '<th colspan="3" class="px-2 py-1.5 text-center font-bold text-primary border-l border-outline-variant/50">Actions</th>'
-           '<th colspan="6" class="px-2 py-1.5 text-center font-bold text-tertiary border-l border-outline-variant/50">Governance Scope</th></tr>'
-           '<tr class="bg-surface-container-low border-b border-outline-variant/50 text-[10px] uppercase tracking-wider">'
-           '<th colspan="2" class="px-1 py-1 text-right border-l border-outline-variant/50">Delivery</th>'
-           '<th class="px-1 py-1 text-left">Alerts</th>'
-           '<th colspan="2" class="px-1 py-1 text-right border-l border-outline-variant/50">Domains</th>'
-           '<th colspan="4" class="px-1 py-1 text-left">Frameworks</th></tr>'
+           # tier 1 — the two major groups
+           '<tr class="bg-surface-container border-b border-outline-variant/50 text-xs uppercase tracking-wider">'
+           '<th rowspan="3" class="px-3 py-2.5 text-left font-bold align-bottom text-on-surface">Scope</th>'
+           '<th colspan="4" class="px-2 py-2 text-center font-bold text-primary border-l border-outline-variant/50">Actions</th>'
+           '<th colspan="6" class="px-2 py-2 text-center font-bold text-tertiary border-l border-outline-variant/50">Governance Scope</th></tr>'
+           # tier 2 — sub-groups, centered over their columns
+           '<tr class="bg-surface-container-low border-b border-outline-variant/50 text-xs uppercase tracking-wider">'
+           '<th colspan="2" class="px-2 py-1.5 text-center border-l border-outline-variant/50">Delivery</th>'
+           '<th colspan="2" class="px-2 py-1.5 text-center">Alerts</th>'
+           '<th colspan="2" class="px-2 py-1.5 text-center border-l border-outline-variant/50">Domains</th>'
+           '<th colspan="4" class="px-2 py-1.5 text-center">Frameworks</th></tr>'
+           # tier 3 — individual columns
            '<tr class="bg-surface-container-low border-b border-outline-variant/60 text-xs">'
-           + "".join(f'<th class="px-2 py-1.5 text-center font-semibold{sep(f)}">{esc(l)}</th>' for f, l in POLICY_COLS)
+           + "".join(f'<th class="px-2 py-2 text-center font-semibold{sep(f)}">{esc(l)}</th>' for f, l in POLICY_COLS)
            + '</tr></thead>')
 
     # --- JIRA connector (destination for the Issue action) ---
@@ -1599,9 +1764,9 @@ def render_policy(project="demo-proj", page=1):
 
     content = (
         '<p class="text-base text-on-surface-variant mb-5 max-w-3xl">Policy for your <b>in-scope projects</b>. '
-        '<b>Actions</b> are gated by what you set up — <b>PR</b> needs a repo, <b>Slack</b> needs a channel '
-        '(both in Sources), <b>Issue</b> needs JIRA (below); unavailable ones are greyed out. '
-        '<b>Governance Scope</b> (Domains + Frameworks) is always adjustable. Changes save instantly.</p>'
+        '<b>Actions</b> are gated by what you set up — <b>PR</b> needs a repo, <b>Slack</b>/<b>Email</b> need '
+        'that channel (all in Sources), <b>Issue</b> needs JIRA (below); unavailable ones are greyed out. '
+        'Compliance <b>Frameworks</b> require the <b>Security</b> domain to be enabled. Changes save instantly.</p>'
         + jira_card +
         '<section class="bg-surface border border-outline-variant/40 rounded-lg overflow-hidden">'
         f'<div class="overflow-x-auto"><table class="w-full text-left text-base">{hdr}'
@@ -1610,7 +1775,9 @@ def render_policy(project="demo-proj", page=1):
         '<script>function ccPol(el){fetch("/policy/toggle",{method:"POST",'
         'headers:{"Content-Type":"application/x-www-form-urlencoded"},'
         'body:"scope="+encodeURIComponent(el.dataset.scope)+"&field="+encodeURIComponent(el.dataset.field)'
-        '+"&on="+(el.checked?"1":"")});}</script>')
+        # toggling the Security domain enables/disables the frameworks - reload to reflect it
+        '+"&on="+(el.checked?"1":"")}).then(function(){'
+        'if(el.dataset.field==="security")location.reload();});}</script>')
     return _base_page(content)
 
 
@@ -1656,7 +1823,7 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
              if compliant else
              '<span class="px-3 py-1 rounded text-sm font-bold bg-error-container text-on-error-container">NON-COMPLIANT</span>')
     headline = (
-        '<div class="flex items-center justify-between mb-5"><div class="flex items-center gap-4">'
+        '<div class="flex items-center justify-between mb-4"><div class="flex items-center gap-4">'
         f'<div class="text-5xl font-bold text-{ocol}">{overall:.0f}%</div>'
         '<div class="space-y-1"><div class="text-sm uppercase tracking-wider text-on-surface-variant">Overall compliance</div>'
         f'{badge}</div></div>{filt}</div>')
@@ -1665,15 +1832,15 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
     def cell(rule, fw):
         cid = CONTROLS[rule].get(fw, "")
         if not cid:
-            return '<td class="px-3 py-2.5 text-center text-base text-on-surface-variant/40">—</td>'
+            return '<td class="px-3 py-1.5 text-center text-base text-on-surface-variant/40">—</td>'
         if rule in fails:
             flist = fails[rule]
             fp, n = flist[0][1], len(flist)
             badge = f'<sup class="text-[11px] ml-0.5">×{n}</sup>' if n > 1 else ""
             tip = f"{n} finding(s): " + ", ".join(f"{r} ({f})" for r, f in flist)
-            return (f'<td class="px-3 py-2.5 text-center bg-error-container/40"><a href="/finding?fp={esc(fp)}" '
+            return (f'<td class="px-3 py-1.5 text-center bg-error-container/40"><a href="/finding?fp={esc(fp)}" '
                     f'title="{esc(tip)}" class="font-mono text-base text-error font-semibold hover:underline">{esc(cid)}{badge}</a></td>')
-        return (f'<td class="px-3 py-2.5 text-center bg-primary-container/40">'
+        return (f'<td class="px-3 py-1.5 text-center bg-primary-container/40">'
                 f'<span class="font-mono text-base text-primary">{esc(cid)}</span></td>')
 
     rows = ""
@@ -1683,23 +1850,23 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
                  f'<span class="w-2 h-2 rounded-full bg-{"error" if failing else "primary"}"></span>{"FAIL" if failing else "PASS"}</span>')
         cells = "".join(cell(rule, fw) for fw in FRAMEWORKS)
         rows += ('<tr class="hover:bg-surface-container-low transition-colors">'
-                 f'<td class="px-3 py-2.5 font-semibold text-base text-on-surface">{esc(m["name"])}</td>'
-                 f'<td class="px-3 py-2.5">{rstat}</td>{cells}</tr>')
+                 f'<td class="px-3 py-1.5 font-semibold text-base text-on-surface">{esc(m["name"])}</td>'
+                 f'<td class="px-3 py-1.5">{rstat}</td>{cells}</tr>')
 
-    foot = '<td colspan="2" class="px-3 py-3 font-bold text-on-surface-variant uppercase tracking-wider text-sm">Framework score</td>'
+    foot = '<td colspan="2" class="px-3 py-2 font-bold text-on-surface-variant uppercase tracking-wider text-sm">Framework score</td>'
     for fw in FRAMEWORKS:
         p = post[fw]
         col = "primary" if p["failing"] == 0 else "tertiary" if p["score"] >= 0.5 else "error"
-        foot += (f'<td class="px-3 py-3 text-center"><div class="font-bold text-lg text-{col}">{p["score"] * 100:.0f}%</div>'
+        foot += (f'<td class="px-3 py-2 text-center"><div class="font-bold text-lg text-{col}">{p["score"] * 100:.0f}%</div>'
                  f'<div class="text-xs text-on-surface-variant">{p["passing"]}/{p["total"]}</div></td>')
 
-    th = "".join(f'<th class="px-3 py-3 text-center font-semibold text-sm">{esc(fw)}</th>' for fw in FRAMEWORKS)
+    th = "".join(f'<th class="px-3 py-2 text-center font-semibold text-sm">{esc(fw)}</th>' for fw in FRAMEWORKS)
 
     # --- coverage caption: controls in scope vs full catalog ---
     from agents.compliance import FRAMEWORK_TOTALS
     in_scope = sum(p["total"] for p in post.values())
     catalog = sum(FRAMEWORK_TOTALS.values())
-    coverage = (f'<p class="text-sm text-on-surface-variant mb-5">Scored against '
+    coverage = (f'<p class="text-sm text-on-surface-variant mb-3">Scored against '
                 f'<span class="font-semibold text-on-surface">{in_scope}</span> in-scope controls '
                 f'of {catalog} across all frameworks — set by the control groups below.</p>')
 
@@ -1709,14 +1876,14 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
         for g in GROUPS[fw]:
             on = g["key"] in enabled[fw]
             if g["locked"]:
-                chips += (f'<label class="flex items-center gap-2 px-3 py-2.5 rounded-md bg-surface-container-low '
+                chips += (f'<label class="flex items-center gap-2 px-3 py-2 rounded-md bg-surface-container-low '
                           'border border-outline-variant/40 text-sm opacity-90" title="Mandatory baseline — always in scope">'
                           '<input type="checkbox" checked disabled class="accent-primary w-4 h-4"/>'
                           f'<span class="text-on-surface">{esc(g["name"])}</span>'
                           f'<span class="text-xs text-on-surface-variant">{g["count"]}</span>'
                           '<span class="text-[10px] font-bold text-primary uppercase tracking-wider ml-auto">Required</span></label>')
             else:
-                chips += (f'<label class="flex items-center gap-2 px-3 py-2.5 rounded-md bg-surface '
+                chips += (f'<label class="flex items-center gap-2 px-3 py-2 rounded-md bg-surface '
                           'border border-outline-variant/40 text-sm hover:border-primary/40 cursor-pointer">'
                           f'<input type="checkbox" {"checked" if on else ""} class="accent-primary w-4 h-4" '
                           f'data-fw="{esc(fw)}" data-key="{esc(g["key"])}" onchange="ccScope(this)"/>'
@@ -1726,13 +1893,13 @@ def render_compliance(project="demo-proj", page=1, scope="overall"):
                 f'text-on-surface-variant mb-1.5">{esc(fw)}</div>{chips}</div>')
 
     scope_panel = (
-        '<section class="bg-surface border border-outline-variant/40 rounded-lg p-5 mt-5">'
+        '<section class="bg-surface border border-outline-variant/40 rounded-lg p-4 mt-4">'
         '<div class="flex items-center justify-between mb-1">'
         '<h3 class="text-lg font-bold text-on-surface">Control groups in scope</h3>'
         '<span class="text-xs text-on-surface-variant">Admin · applies to the score above</span></div>'
-        '<p class="text-sm text-on-surface-variant mb-4">Enable optional groups to widen the audit denominator. '
+        '<p class="text-sm text-on-surface-variant mb-3">Enable optional groups to widen the audit denominator. '
         'The baseline group of each framework is mandatory and cannot be disabled.</p>'
-        '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">'
+        '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">'
         + "".join(group_panel(fw) for fw in FRAMEWORKS) +
         '</div></section>'
         '<script>function ccScope(el){fetch("/compliance/scope/toggle",{method:"POST",'

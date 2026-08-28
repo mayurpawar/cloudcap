@@ -134,13 +134,16 @@ locals {
   # the per-agent read roles, plus what the Cloud Run cost analyzer needs.
   runtime_read_roles = distinct(concat(
     flatten([for a in var.agents : a.roles]),
-    ["roles/run.viewer", "roles/monitoring.viewer", "roles/browser"],
+    # run/monitoring/browser for cost + discovery; legacyBucketReader is read-only and
+    # lets the security scanner read bucket IAM directly (Asset Inventory's index can lag).
+    ["roles/run.viewer", "roles/monitoring.viewer", "roles/browser", "roles/storage.legacyBucketReader"],
   ))
-  # Hub-local roles: reason (Vertex), persist (Firestore), audit (Logging), secrets.
+  # Hub-local roles: reason (Vertex), persist (Firestore), audit read+write (Logging), secrets.
   runtime_hub_roles = [
     "roles/aiplatform.user",
     "roles/datastore.user",
     "roles/logging.logWriter",
+    "roles/logging.viewer", # read the cloudcap-audit trail for the History / Hub logs views
     "roles/secretmanager.secretAccessor",
   ]
 }

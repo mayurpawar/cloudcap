@@ -429,6 +429,11 @@ async def remediate(ctx, findings: list[dict[str, Any]], project: str = "") -> l
                                     {"resource": f["resource"], "status": res.get("status")})
             used.append("slack")
 
+        if actions.get("email"):
+            ctx.observability.audit("notifier", "email_notify",
+                                    {"resource": f["resource"], "status": res.get("status")})
+            used.append("email")
+
         res["channels"] = used
         ctx.observability.audit("remediation", "deliver",
                                 {"resource": f["resource"], "status": res.get("status"), "channels": used})

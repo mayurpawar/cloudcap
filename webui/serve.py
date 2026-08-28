@@ -19,8 +19,8 @@ from webui.sessions import build_sessions
 from webui import onboarding as ob
 from webui.render import (neutralize, normalize_layout, render_board, render_compliance,
                           render_docs, render_finding, render_history, render_hub,
-                          render_integrations, render_login, render_not_ready, render_policy,
-                          render_sources, restyle, shell)
+                          render_integrations, render_login, render_logs, render_not_ready,
+                          render_policy, render_sources, restyle, shell)
 
 
 def _final(html):
@@ -189,6 +189,21 @@ def make_handler(project):
             if path == "/docs":
                 content = render_docs(project, query.get("topic"))
                 html = normalize_layout(shell(content, "/docs", project, auth))
+                return self._send(_final(html))
+
+            if path == "/logs":
+                from agents.audit_reader import read_audit
+                agent = query.get("agent")
+                entries = read_audit(agent=agent, limit=120)
+                if agent:
+                    title, subtitle, back = (f"Agent logs · {agent}",
+                                             f"Cloud Logging audit events emitted by the {agent} agent.", "/hub")
+                else:
+                    title, subtitle, back = ("Scan audit log",
+                                             "The immutable, hash-chained Cloud Logging audit trail — most recent governance events.",
+                                             "/history")
+                content = render_logs(project, entries, title, subtitle, back, back)
+                html = normalize_layout(shell(content, back, project, auth))
                 return self._send(_final(html))
 
             active = "/board" if path in ("/", "/board") else path
@@ -370,7 +385,8 @@ def make_handler(project):
                 from agents.governance import GovernanceConfig
                 from agents.policy import ActionPolicy
                 scope, field, on = g("scope"), g("field"), bool(g("on"))
-                if field in ("pr", "issue", "slack"):
+                from agents.policy import ACTIONS as _POLICY_ACTIONS
+                if field in _POLICY_ACTIONS:
                     pol = ActionPolicy()
                     if scope == "default":
                         d = dict(pol.default); d[field] = on; pol.save_all(d, pol.overrides)

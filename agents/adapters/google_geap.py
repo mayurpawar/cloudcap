@@ -450,8 +450,48 @@ class AgentGatewayAdapter(GatewayPort):
                     "assetType": atype,
                 })
         except Exception:
-            return items  # partial results are still useful; never crash the scan
+            pass  # partial results are still useful; never crash the scan
+        # Direct, authoritative GCS bucket-IAM check (Asset Inventory's index can lag or
+        # gap for bucket IAM). Merge, de-duplicating by resource. Read-only (getIamPolicy).
+        seen = {i["resource"] for i in items}
+        for b in self._public_buckets(project):
+            if b["resource"] not in seen:
+                items.append(b)
+                seen.add(b["resource"])
         return items
+
+    def _public_buckets(self, project: str) -> list[dict[str, Any]]:
+        """Buckets granting allUsers/allAuthenticatedUsers, read straight from GCS IAM."""
+        try:
+            from google.cloud import storage
+        except Exception:
+            return []
+        out: list[dict[str, Any]] = []
+        try:
+            client = storage.Client(project=project)
+            for b in client.list_buckets():
+                try:
+                    pol = b.get_iam_policy(requested_policy_version=3)
+                except Exception:
+                    continue
+                public = sorted({m for bd in pol.bindings for m in bd.get("members", [])
+                                 if m in ("allUsers", "allAuthenticatedUsers")})
+                if not public:
+                    continue
+                out.append({
+                    "resource": b.name,
+                    "severity": "critical",
+                    "title": f"Publicly accessible Bucket ({', '.join(public)})",
+                    "detail": (f"Cloud Storage bucket '{b.name}' grants {', '.join(public)} in its "
+                               f"IAM policy — its objects are readable by anyone on the internet."),
+                    "recommendedAction": (
+                        "Remove the allUsers/allAuthenticatedUsers IAM binding immediately and "
+                        "grant access to specific principals only (least privilege)."),
+                    "assetType": "storage.googleapis.com/Bucket",
+                })
+        except Exception:
+            return out
+        return out
 
     # --- IAM over-privilege (live, read-only) ----------------------------------
     @staticmethod

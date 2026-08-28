@@ -10,8 +10,8 @@ from __future__ import annotations
 from agents.sources import all_projects
 from agents.store import load_state, save_state
 
-ACTIONS = ["pr", "issue", "slack"]
-DEFAULT = {"pr": True, "issue": False, "slack": True}
+ACTIONS = ["pr", "issue", "slack", "email"]
+DEFAULT = {"pr": True, "issue": False, "slack": True, "email": False}
 
 
 class ActionPolicy:
