@@ -999,18 +999,23 @@ def render_docs(project="demo-proj", topic=None):
         'category. If JIRA isn’t configured, CloudCap falls back to a local ticket artifact so nothing is lost.</p>')
 
     channels = (
-        '<p>Per project, findings can fan out to notification channels (configured on the Sources page). '
-        'Webhook URLs / addresses are stored per project; secrets go to Secret Manager:</p>'
+        '<p>Notifications have two parts. <b class="text-on-surface">Endpoints</b> (the addresses / webhook '
+        'URLs) are configured <b class="text-on-surface">per project on the Sources page</b> — click '
+        '<span class="' + _code + '">Set&nbsp;up</span> on a project. <b class="text-on-surface">Which channels '
+        'fire</b> is toggled per project on the <a href="/policy" class="text-primary hover:underline">Policy</a> '
+        'page. Any secret (bot token / routing key) goes to Secret Manager, never the repo.</p>'
         + _doc_table([
-            ('Slack', 'Incoming webhook URL', 'https://hooks.slack.com/services/…'),
-            ('Email', 'Address', 'secops@yourco.com'),
-            ('MS Teams', 'Incoming webhook URL', 'https://outlook.office.com/webhook/…'),
-            ('PagerDuty', 'Routing (integration) key', 'for high/critical escalation'),
-            ('Webhook', 'POST URL', 'generic JSON to your own endpoint'),
-        ], headers=("Channel", "Field", "Example"))
-        + '<p class="text-xs">Delivery is governed by each project’s action policy. In this deployment the '
-        'audited projects are <b class="text-on-surface">report-only</b> (detect + record, no outbound firing) '
-        'until you explicitly enable a channel on the Policy page.</p>')
+            ('Slack', 'Incoming webhook URL', 'delivery-wired · toggle on Policy'),
+            ('Email', 'Address', 'delivery-wired · toggle on Policy'),
+            ('MS Teams', 'Incoming webhook URL', 'configurable endpoint · delivery on roadmap'),
+            ('PagerDuty', 'Routing (integration) key', 'configurable endpoint · delivery on roadmap'),
+            ('Webhook', 'POST URL', 'configurable endpoint · delivery on roadmap'),
+        ], headers=("Channel", "Endpoint (Sources)", "Status"))
+        + '<p><b class="text-on-surface">Slack</b> and <b class="text-on-surface">Email</b> are the '
+        'delivery-wired alert channels today (they emit a delivery event per finding, gated by the project '
+        'policy). Teams, PagerDuty, and Webhook are storable endpoints whose outbound delivery is on the '
+        'roadmap — so the Policy page only toggles PR, Issue, Slack, and Email. Every audited project stays '
+        '<b class="text-on-surface">report-only</b> until you enable a channel on Policy.</p>')
 
     github = (
         '<p>The <b class="text-on-surface">Fix</b> action opens a <b class="text-on-surface">real Pull '
