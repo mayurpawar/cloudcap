@@ -132,6 +132,64 @@ GOOGLE_CLOUD_PROJECT=cloud-cap-506110 CLOUDCAP_GEMINI=1 CLOUDCAP_LOCATIONS=us-ce
 ```
 `--project` = project to AUDIT; `GOOGLE_CLOUD_PROJECT` = hub (Vertex + logging).
 
+### Deploy to Cloud Run (the hosted hub) — Terraform
+
+This is the one-command path that stands up the whole fleet (Cloud Run service, the
+per-agent + runtime service accounts with read-only roles, and Firestore). Terraform
+creates everything **except** the Artifact Registry repo you push the image to.
+
+```bash
+# 0. Prereqs: gcloud + terraform installed; a hub project with billing; you are Owner.
+#    Authenticate for both the CLI and Terraform (ADC):
+gcloud auth login
+gcloud auth application-default login
+gcloud config set project <HUB_PROJECT>
+
+# 1. One-time: create the Artifact Registry repo the image lives in.
+gcloud services enable artifactregistry.googleapis.com --project <HUB_PROJECT>
+gcloud artifacts repositories create cloudcap --repository-format=docker \
+  --location=us-central1 --project <HUB_PROJECT>
+
+# 2. Build + push the container image.
+gcloud builds submit \
+  --tag us-central1-docker.pkg.dev/<HUB_PROJECT>/cloudcap/app:v1 \
+  --project <HUB_PROJECT> .
+
+# 3. Configure the deployment.
+cd terraform/fleet
+cp terraform.tfvars.example terraform.tfvars
+#   Edit terraform.tfvars — set at least:
+#     hub_project_id   = "<HUB_PROJECT>"
+#     image            = "us-central1-docker.pkg.dev/<HUB_PROJECT>/cloudcap/app:v1"
+#     admin_emails     = ["you@yourco.com"]     # Firebase admins
+#     scan_project_ids = ["<HUB_PROJECT>", "<TARGET_1>", ...]
+#     scan_target      = "<TARGET_1>,<TARGET_2>"  # scanned on 'Run scan'
+#     scan_mode        = "live"
+
+# 4. Deploy. Terraform prints the Cloud Run URL as `dashboard_url`.
+terraform init
+terraform apply
+```
+
+Open the printed `dashboard_url`, sign in (Firebase Google — your `admin_emails`), and
+onboard. To ship a new build, bump `image` to a new tag and re-run steps 2 + 4.
+
+#### (Optional) GitOps PR remediation — fix live findings by Pull Request
+CloudCap detects misconfigurations on the **live cloud**; to let it open a **Pull Request**
+into the Terraform repo that owns a resource, give the hub a GitHub token:
+
+```bash
+# A fine-grained PAT scoped to ONLY the owning repo(s) — Contents + Pull requests: RW.
+printf '%s' "<GITHUB_PAT>" | gcloud secrets create github-token \
+  --data-file=- --project <HUB_PROJECT>
+gcloud secrets add-iam-policy-binding github-token --project <HUB_PROJECT> \
+  --member="serviceAccount:cc-runtime@<HUB_PROJECT>.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
+The `GITHUB_TOKEN` env block is already wired in `terraform/fleet/main.tf` (re-`apply`).
+Bind a repo to a project on the **Projects** page (or during onboarding); PRs are opened
+**only** against a finding's explicitly-resolved owner repo — never any other repo.
+
 ---
 
 ## 5. Environment variables (reference)

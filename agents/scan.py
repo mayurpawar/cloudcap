@@ -60,10 +60,26 @@ async def run_scan(project: str, mode: str = "mock", durable_audit: bool = True)
                     if gov.category_enabled(f.metadata.get("project", tproj), f.category)]
         fd = [finding_to_dict(f) for f in findings]
 
-        # IaC code scan: hardcoded secrets in the repo bound to this project (SOC 2 CC6.1).
+        # Cloud→IaC remediation wiring. Detection stays 100% cloud-side (a bucket that is
+        # public on the LIVE cloud right now — this catches ClickOps/drift a code-only IaC
+        # audit would miss). For those findings whose owning Terraform repo we resolved from
+        # state, precompute the fix (remove the allUsers binding from the IaC) so the PR
+        # channel can open a real PR. This only *writes the fix*; it never detects.
         try:
-            from agents.iac_secret_scan import scan_repo_secrets
-            fd += scan_repo_secrets(tproj)
+            from agents.iac_public_access_fix import build_public_access_fix
+            _fix_cache: dict[str, dict | None] = {}
+            for _f in fd:
+                if "publicly accessible" not in str(_f.get("title", "")).lower():
+                    continue
+                _md = _f.setdefault("metadata", {})
+                _repo = (_md.get("owner_repo") or "").strip()
+                if not _repo or _md.get("fix_files"):
+                    continue
+                if _repo not in _fix_cache:
+                    _fix_cache[_repo] = build_public_access_fix(_repo)
+                _fix = _fix_cache[_repo]
+                if _fix:
+                    _md.update(_fix)
         except Exception:
             pass
 

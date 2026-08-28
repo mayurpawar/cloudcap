@@ -31,6 +31,7 @@ resource "google_project_service" "apis" {
     "firestore.googleapis.com",            # durable state (config, findings, lifecycle)
     "secretmanager.googleapis.com",        # tokens (GitHub/Slack) — never in config
     "cloudresourcemanager.googleapis.com", # enumerate projects under org/folder
+    "cloudscheduler.googleapis.com",       # unattended daily background scan
     "iam.googleapis.com",
     "iap.googleapis.com", # optional: enterprise SSO in front of Cloud Run
   ])
@@ -134,9 +135,7 @@ locals {
   # the per-agent read roles, plus what the Cloud Run cost analyzer needs.
   runtime_read_roles = distinct(concat(
     flatten([for a in var.agents : a.roles]),
-    # run/monitoring/browser for cost + discovery; legacyBucketReader is read-only and
-    # lets the security scanner read bucket IAM directly (Asset Inventory's index can lag).
-    ["roles/run.viewer", "roles/monitoring.viewer", "roles/browser", "roles/storage.legacyBucketReader"],
+    ["roles/run.viewer", "roles/monitoring.viewer", "roles/browser"],
   ))
   # Hub-local roles: reason (Vertex), persist (Firestore), audit read+write (Logging), secrets.
   runtime_hub_roles = [
@@ -253,6 +252,16 @@ resource "google_cloud_run_v2_service" "dashboard" {
         name  = "CLOUDCAP_SCAN_PROJECT"
         value = var.scan_target # project scanned live on 'Run scan'
       }
+      # Unattended background scan: Cloud Scheduler POSTs /tasks/scan with an OIDC token
+      # from this SA; the app verifies the token email + audience before running the fleet.
+      env {
+        name  = "CLOUDCAP_SCHED_SA"
+        value = google_service_account.runtime.email
+      }
+      env {
+        name  = "CLOUDCAP_SCHED_AUDIENCE"
+        value = "${var.hub_url}/tasks/scan"
+      }
       # Terraform state backends registered for IaC ownership resolution (GCS state →
       # owning repo). Resources in no indexed state resolve as ClickOps (unmanaged).
       env {
@@ -280,17 +289,15 @@ resource "google_cloud_run_v2_service" "dashboard" {
       # GitHub token for GitOps PR remediation — from Secret Manager. Scope it to the
       # bound demo repo ONLY (fine-grained PAT). The PR channel opens PRs solely against
       # a finding's explicitly-bound owner_repo, so no other repo can be touched.
-      # TODO(github-pr): un-comment AFTER creating the `github-token` secret, then apply.
-      # Left commented so an apply never fails on a missing secret before then.
-      # env {
-      #   name = "GITHUB_TOKEN"
-      #   value_source {
-      #     secret_key_ref {
-      #       secret  = "github-token"
-      #       version = "latest"
-      #     }
-      #   }
-      # }
+      env {
+        name = "GITHUB_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = "github-token"
+            version = "latest"
+          }
+        }
+      }
     }
   }
   depends_on = [google_project_service.apis, google_firestore_database.hub]
@@ -306,6 +313,31 @@ resource "google_cloud_run_v2_service_iam_member" "invoker" {
   name     = google_cloud_run_v2_service.dashboard.name
   role     = "roles/run.invoker"
   member   = "allUsers"
+}
+
+# Unattended daily background scan — the autonomous fleet run. Cloud Scheduler POSTs
+# /tasks/scan with an OIDC token minted for cc-runtime; the app verifies the token's
+# email + audience (CLOUDCAP_SCHED_SA / CLOUDCAP_SCHED_AUDIENCE) before running the fleet.
+# No human, no prompt. Disabled when hub_url or scan_schedule is empty.
+resource "google_cloud_scheduler_job" "daily_scan" {
+  count            = var.hub_url == "" || var.scan_schedule == "" ? 0 : 1
+  name             = "cloudcap-daily-scan"
+  project          = var.hub_project_id
+  region           = var.region
+  description      = "Unattended daily CloudCap governance scan (background agent fleet)."
+  schedule         = var.scan_schedule
+  time_zone        = "Etc/UTC"
+  attempt_deadline = "600s"
+
+  http_target {
+    http_method = "POST"
+    uri         = "${var.hub_url}/tasks/scan"
+    oidc_token {
+      service_account_email = google_service_account.runtime.email
+      audience              = "${var.hub_url}/tasks/scan"
+    }
+  }
+  depends_on = [google_project_service.apis]
 }
 
 # --- PILLARS still wired live in-app (documented, not TF): Memory Bank, Agent

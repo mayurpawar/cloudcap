@@ -87,6 +87,20 @@ def propose(f: dict[str, Any]) -> RemediationPlan | None:
             repo=owner_repo,
         )
 
+    # Public bucket detected on the LIVE cloud, owner resolved to an IaC repo — the
+    # cloud→IaC generator precomputed the fix (the allUsers binding removed from the
+    # owning Terraform). Commit it as a real PR.
+    if md.get("fix_kind") == "remove-public-iam" and md.get("fix_files"):
+        _removed = ", ".join(md.get("tf_removed") or []) or "public IAM binding"
+        return RemediationPlan(
+            resource=res, branch=md.get("fix_branch") or branch,
+            title=f"Remove public access from {res} (drop {_removed})",
+            change_kind="iam-tighten",
+            files=dict(md["fix_files"]),
+            repo=owner_repo,
+            quarantine=quarantine_for("storage.bucket"),
+        )
+
     # CONFLICT — multiple Terraform states claim this resource. Never auto-PR; the
     # ambiguity must be triaged by a human (which state should own it?).
     if md.get("ownership_status") == "conflict":

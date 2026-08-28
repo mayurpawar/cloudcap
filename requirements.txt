@@ -19,3 +19,4 @@ google-cloud-resource-manager>=1.12  # project discovery (onboarding)
 
 # Durable state (deployed): Firestore. Local/dev uses eval/*.json (no dep).
 google-cloud-firestore>=2.16
+google-auth

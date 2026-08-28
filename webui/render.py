@@ -163,7 +163,10 @@ def restyle(html):
              # vertical column dividers on every table (match the horizontal row-line tone)
              "table td,table th{border-right:1px solid rgba(228,228,231,0.6)}"
              "table td:last-child,table th:last-child{border-right:0}</style>")
-    html = html.replace("</head>", style + "</head>", 1)
+    icons = ('<link rel="icon" type="image/x-icon" href="/favicon.ico"/>'
+             '<link rel="icon" type="image/png" sizes="128x128" href="/logo-small.png"/>'
+             '<link rel="apple-touch-icon" href="/logo-small@2x.png"/>')
+    html = html.replace("</head>", icons + style + "</head>", 1)
     return html
 
 
@@ -218,7 +221,9 @@ def _sidebar(active, project):
         '<span class="material-symbols-outlined">radar</span>Run scan</button></form></div>')
     return (
         '<aside class="w-64 shrink-0 bg-surface-container-highest flex flex-col border-r border-outline-variant/50 h-screen sticky top-0">'
-        '<div class="p-6"><div class="font-headline font-bold text-2xl text-primary">CloudCap</div>'
+        '<div class="p-6"><div class="flex items-center gap-2.5">'
+        '<img src="/logo-small.png" alt="CloudCap" class="w-8 h-8 shrink-0"/>'
+        '<div class="font-headline font-bold text-2xl text-primary">CloudCap</div></div>'
         '<div class="text-on-surface-variant text-xs mt-1">Fortified Enterprise Fleet</div></div>'
         f'<nav class="flex-1 px-4 py-3 space-y-1 overflow-y-auto">{nav}</nav>'
         + scan_cta +
@@ -1480,7 +1485,7 @@ def project_setup_form(proj, action="/sources/project/save", submit="Save",
             f'<input name="chv_{k}" value="{esc(have.get(k,""))}" placeholder="{esc(c["placeholder"])}" '
             f'data-validate="{c["validate"]}" oninput="ccVal(this)" class="{inp} pr-7"/>'
             '<span class="cc-mark absolute right-2 top-2.5 text-sm font-bold"></span>'
-            f'<div class="text-[11px] text-on-surface-variant mt-1">{esc(c["field"])}</div></div></div>')
+            f'<div class="text-sm text-on-surface-variant mt-1">{esc(c["field"])}</div></div></div>')
 
     return (
         f'<form method="POST" action="{esc(action)}" onsubmit="return ccSetupOK(this)" class="space-y-4">'

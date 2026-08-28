@@ -89,6 +89,49 @@ def make_handler(project):
                 self.send_header("Set-Cookie", set_cookie)
             self.end_headers()
 
+        # public static assets (favicon + logo) — whitelisted, no auth, no traversal
+        _STATIC = {
+            "/favicon.ico": ("favicon.ico", "image/x-icon"),
+            "/logo-small.png": ("logo-small.png", "image/png"),
+            "/logo-small@2x.png": ("logo-small@2x.png", "image/png"),
+        }
+
+        def _verify_scheduler_oidc(self):
+            """True iff the request carries a valid Google OIDC token minted by the configured
+            Cloud Scheduler service account (CLOUDCAP_SCHED_SA) with the expected audience
+            (CLOUDCAP_SCHED_AUDIENCE). Fails closed if either is unset or the token is bad."""
+            sa = os.environ.get("CLOUDCAP_SCHED_SA", "").strip()
+            aud = os.environ.get("CLOUDCAP_SCHED_AUDIENCE", "").strip()
+            if not sa or not aud:
+                return False
+            hdr = self.headers.get("Authorization", "")
+            if not hdr.startswith("Bearer "):
+                return False
+            try:
+                from google.auth.transport import requests as greq
+                from google.oauth2 import id_token
+                claims = id_token.verify_oauth2_token(hdr[7:].strip(), greq.Request(), aud)
+                return claims.get("email") == sa and claims.get("email_verified") is True
+            except Exception:
+                return False
+
+        def _serve_static(self, path):
+            entry = self._STATIC.get(path.split("?", 1)[0])
+            if not entry:
+                self.send_response(404); self.end_headers(); return
+            fname, ctype = entry
+            try:
+                with open(os.path.join(os.path.dirname(__file__), "static", fname), "rb") as fh:
+                    data = fh.read()
+            except OSError:
+                self.send_response(404); self.end_headers(); return
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "public, max-age=86400")
+            self.end_headers()
+            self.wfile.write(data)
+
         def _sid(self):
             # Parse the Cookie header MANUALLY: http.cookies.SimpleCookie chokes on
             # cookies with JSON/special-char values (e.g. Google Sign-In's `g_state`)
@@ -107,8 +150,8 @@ def make_handler(project):
             return SESSIONS.get(sid) if sid else None
 
         def do_GET(self):  # noqa: N802
-            if self.path.startswith("/favicon"):
-                self.send_response(204); self.end_headers(); return
+            if self.path.startswith("/favicon") or self.path.startswith("/logo-small"):
+                return self._serve_static(self.path)
             if self.path == "/logout":
                 sid = self._sid()
                 if sid:
@@ -242,6 +285,26 @@ def make_handler(project):
                                    email=verified["email"], picture=verified.get("picture"),
                                    role=verified["role"], roles=verified["roles"])
                 return self._send("ok", set_cookie=_session_cookie(sid))
+
+            # Unattended background scan — triggered by Cloud Scheduler, authenticated by a
+            # Google OIDC token from the scheduler's service account (NOT a user session).
+            # This is the autonomous fleet run: no human, no prompt — it scans and acts.
+            if self.path == "/tasks/scan":
+                if not self._verify_scheduler_oidc():
+                    return self._send("unauthorized", code=401)
+                import asyncio
+                import json as _json
+
+                from agents.scan import run_scan
+                scan_mode = os.environ.get("CLOUDCAP_SCAN_MODE", "mock")
+                scan_proj = os.environ.get("CLOUDCAP_SCAN_PROJECT", "")
+                try:
+                    res = asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
+                    return self._send(_json.dumps({"status": "ok", "trigger": "scheduler",
+                                                   "findings": res.get("findings")}),
+                                      ctype="application/json")
+                except Exception as exc:  # noqa: BLE001
+                    return self._send(f"scan error: {exc}", code=500)
 
             form = urllib.parse.parse_qs(raw.decode()) if raw else {}
             g = lambda k, d="": form.get(k, [d])[0]

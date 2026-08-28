@@ -57,6 +57,18 @@ variable "firestore_location" {
   default     = "nam5"
 }
 
+variable "hub_url" {
+  description = "Stable Cloud Run URL of the hub (for the scheduler's OIDC audience + POST target). Set after the first apply from the dashboard_url output."
+  type        = string
+  default     = ""
+}
+
+variable "scan_schedule" {
+  description = "Cron for the unattended daily background scan (Cloud Scheduler). Empty string disables the job."
+  type        = string
+  default     = "0 6 * * *"
+}
+
 # --- Scan behaviour (what 'Run scan' actually does) -------------------------
 variable "scan_mode" {
   description = "mock (demo dataset) | live (real GCP read-only data)."
