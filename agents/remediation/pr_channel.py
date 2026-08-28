@@ -439,8 +439,11 @@ async def remediate(ctx, findings: list[dict[str, Any]], project: str = "") -> l
                 res = ticket
 
         if actions.get("slack"):
+            from agents.slack import notify as _slack_notify
+            sres = _slack_notify(f, project, res)
             ctx.observability.audit("notifier", "slack_notify",
-                                    {"resource": f["resource"], "status": res.get("status")})
+                                    {"resource": f["resource"], "status": sres.get("status"),
+                                     "sent": sres.get("sent", 0)})
             used.append("slack")
 
         if actions.get("email"):
