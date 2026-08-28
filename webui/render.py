@@ -1301,7 +1301,7 @@ def render_history(project="demo-proj", page=1):
     return _base_page(content)
 
 
-def render_board(project="demo-proj", page=1):
+def render_board(project="demo-proj", page=1, scanned=False):
     from agents.onboarding import OnboardingState
     ob = OnboardingState()
     if not ob.first_scan_done:
@@ -1393,7 +1393,23 @@ def render_board(project="demo-proj", page=1):
         f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span> · '
         f'<span class="font-semibold">{"LIVE" if d.get("mode")=="live" else "DEMO"}</span></p>'
         + _scan_button("Re-scan", secondary=True) + '</div>')
-    return _base_page(scan_bar + summary_strip + cards + findings + _fid_tooltip())
+    # Unmistakable completion signal after a scan finishes (the POST redirects here with
+    # ?scanned=1) — a big green banner so it's obvious the scan is done.
+    banner = ""
+    if scanned:
+        _sav = sum(x.get("est_monthly_savings_usd", 0) for x in d["fd"])
+        banner = (
+            '<div id="cc-scandone" class="mb-5 flex items-center gap-3 rounded-lg border border-primary/40 '
+            'bg-primary-container/50 px-5 py-4 shadow-sm">'
+            '<span class="material-symbols-outlined text-primary text-3xl">check_circle</span>'
+            '<div><div class="font-bold text-lg text-on-surface">Scan complete</div>'
+            f'<div class="text-base text-on-surface-variant">{d["n_findings"]} findings across the fleet · '
+            f'<span class="text-tertiary font-semibold">${_sav:,.0f}/mo</span> savings identified · '
+            f'{d.get("critical", 0)} critical.</div></div>'
+            '<button onclick="document.getElementById(\'cc-scandone\').remove()" '
+            'class="ml-auto text-on-surface-variant hover:text-on-surface" title="Dismiss">'
+            '<span class="material-symbols-outlined">close</span></button></div>')
+    return _base_page(banner + scan_bar + summary_strip + cards + findings + _fid_tooltip())
 
 
 # --- remaining screens ------------------------------------------------------

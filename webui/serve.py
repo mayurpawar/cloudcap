@@ -212,8 +212,13 @@ def make_handler(project):
             except ValueError:
                 page = 1
             renderer = ROUTES.get(path, render_board)
-            paged = (render_board, render_compliance, render_sources, render_policy, render_history)
-            content = renderer(project, page) if renderer in paged else renderer(project)
+            paged = (render_compliance, render_sources, render_policy, render_history)
+            if renderer is render_board:
+                content = render_board(project, page, scanned=bool(query.get("scanned")))
+            elif renderer in paged:
+                content = renderer(project, page)
+            else:
+                content = renderer(project)
             html = normalize_layout(shell(content, active, project, auth))
             return self._send(_final(html))
 
@@ -315,7 +320,7 @@ def make_handler(project):
                     scan_proj = os.environ.get("CLOUDCAP_SCAN_PROJECT", project)
                     asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
                     st.set(first_scan_done=True)
-                    return self._redirect("/board")
+                    return self._redirect("/board?scanned=1")
                 return self._redirect("/onboarding")
 
             back = self.headers.get("Referer", "/")
