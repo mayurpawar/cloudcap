@@ -28,3 +28,8 @@ discover_project_ids = ["your-hub-project", "your-audited-project"]
 # IaC ownership: register Terraform state backends (GCS) → owning repo. Resources found
 # in a state resolve MANAGED (fix routed to that repo); resources in no state are ClickOps.
 # tfstate_sources = "gs://your-bucket/env.tfstate|your-org/your-infra-repo"
+
+# --- Optional integrations (leave empty to skip; a plain apply needs no secrets) -------
+# After creating the secret in Secret Manager, set the secret NAME here to enable:
+# github_token_secret   = "github-token"     # GitOps PR remediation (fine-grained PAT)
+# jira_api_token_secret = "jira-api-token"   # JIRA "Issue" action

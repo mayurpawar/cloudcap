@@ -276,25 +276,34 @@ resource "google_cloud_run_v2_service" "dashboard" {
         name  = "PYTHONUNBUFFERED"
         value = "1" # flush stderr/stdout so diagnostics reach Cloud Logging
       }
-      # JIRA API token — from Secret Manager (non-secret JIRA config lives in Firestore).
-      env {
-        name = "JIRA_API_TOKEN"
-        value_source {
-          secret_key_ref {
-            secret  = "jira-api-token"
-            version = "latest"
+      # JIRA API token (OPTIONAL) — mounted only when jira_api_token_secret is set to an
+      # existing Secret Manager secret. Empty by default so a fresh `apply` never fails on
+      # a missing secret; the Issue action falls back to local tickets until configured.
+      dynamic "env" {
+        for_each = var.jira_api_token_secret != "" ? [1] : []
+        content {
+          name = "JIRA_API_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = var.jira_api_token_secret
+              version = "latest"
+            }
           }
         }
       }
-      # GitHub token for GitOps PR remediation — from Secret Manager. Scope it to the
-      # bound demo repo ONLY (fine-grained PAT). The PR channel opens PRs solely against
-      # a finding's explicitly-bound owner_repo, so no other repo can be touched.
-      env {
-        name = "GITHUB_TOKEN"
-        value_source {
-          secret_key_ref {
-            secret  = "github-token"
-            version = "latest"
+      # GitHub token for GitOps PR remediation (OPTIONAL) — mounted only when
+      # github_token_secret is set. Use a fine-grained PAT scoped to the owning repo. The
+      # PR channel opens PRs solely against a finding's resolved owner_repo. Empty by
+      # default so a fresh `apply` works without the secret (findings show as advisory).
+      dynamic "env" {
+        for_each = var.github_token_secret != "" ? [1] : []
+        content {
+          name = "GITHUB_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = var.github_token_secret
+              version = "latest"
+            }
           }
         }
       }

@@ -36,19 +36,24 @@ in `agents/ports/interfaces.py`. The single shipped implementation is Google GEA
 platform means writing new adapters — no agent-logic changes.
 
 ## Install (customer side)
+CloudCap runs in **your own GCP project (the hub)**. See **[INSTALL.md](INSTALL.md)** for
+the authoritative, step-by-step deploy guide. The Cloud Run flow, in brief:
+
 ```bash
-# 1. Seed a test environment with known ground-truth issues (OUR eval target)
-cd terraform/chaos-env
-terraform init && terraform apply -var project_id=YOUR_TEST_PROJECT
+# 1. One-time: create the Artifact Registry repo, then build + push the image.
+gcloud artifacts repositories create cloudcap --repository-format=docker \
+  --location=us-central1 --project <HUB_PROJECT>
+gcloud builds submit \
+  --tag us-central1-docker.pkg.dev/<HUB_PROJECT>/cloudcap/app:v1 --project <HUB_PROJECT> .
 
-# 2. Install the fleet into the target GCP project
-cd ../fleet
-terraform init && terraform apply -var project_id=YOUR_PROJECT
-
-# 3. Run agents locally against real data during development
-pip install -e .
-python -m agents.run --project YOUR_TEST_PROJECT   # (entrypoint added D5)
+# 2. Configure + deploy the fleet (Cloud Run, service accounts, Firestore).
+cd terraform/fleet
+cp terraform.tfvars.example terraform.tfvars   # edit: hub_project_id, image, admin_emails, scan scope
+terraform init && terraform apply              # prints the dashboard_url
 ```
+
+> Run locally in **mock mode** first (no cloud): `python3 -m agents.run --mode mock --project demo-proj`.
+> The `terraform/chaos-env` project is an **optional** seeded eval target for our own testing — not required to install.
 
 ## How users interact
 - **Discovery:** agents appear in the org **Agent Registry** for cross-dept use.

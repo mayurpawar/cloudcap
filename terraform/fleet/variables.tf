@@ -51,6 +51,21 @@ variable "tfstate_sources" {
   default     = ""
 }
 
+# Optional integration secrets — leave empty for a plain install (features stay off and
+# a fresh `apply` never requires a Secret Manager secret to exist). Set to the secret
+# NAME once you've created it (e.g. "github-token") to enable the feature.
+variable "github_token_secret" {
+  description = "Secret Manager secret name holding a fine-grained GitHub PAT for GitOps PR remediation. Empty = feature off."
+  type        = string
+  default     = ""
+}
+
+variable "jira_api_token_secret" {
+  description = "Secret Manager secret name holding the JIRA API token for the Issue action. Empty = feature off (local tickets)."
+  type        = string
+  default     = ""
+}
+
 variable "firestore_location" {
   description = "Firestore location (region like us-central1, or multi-region nam5/eur3)."
   type        = string

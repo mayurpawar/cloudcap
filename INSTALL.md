@@ -73,8 +73,18 @@ redirect/callback flow to the IdP is the remaining wiring.
 
 ### Option C — Firebase Auth (fastest for a demo / small team)
 Config lives in `webui/firebase_web.json` (the web `apiKey` is public, not a secret).
-1. Firebase Console → your project → **Authentication** → enable **Google** and/or **Email/Password**.
-2. Add authorized users, and set their roles in `webui/users.json`.
+
+> **You MUST replace `webui/firebase_web.json` with YOUR OWN Firebase web config.** The
+> file shipped in this repo points at **our** Firebase project, so out-of-the-box login
+> would authenticate against our project, not yours.
+
+1. Create a **Firebase project** (Firebase Console → Add project).
+2. **Authentication** → **Sign-in method** → enable **Google** (and/or **Email/Password**).
+3. **Authentication** → **Settings** → **Authorized domains** → add your Cloud Run
+   `*.run.app` URL (and any custom domain / `localhost` for local dev).
+4. Project settings → **Your apps** → register a **Web app**, copy its config
+   (`apiKey`, `authDomain`, `projectId`, …), and paste it into `webui/firebase_web.json`.
+5. Add authorized users, and set their roles in `webui/users.json`.
 ```bash
 python3 -m webui.serve --port 9000     # auto-detected when firebase_web.json exists
 ```
@@ -93,12 +103,12 @@ need: **enabled APIs + a least-privilege service account + ADC** (local) or Work
 Identity (deployed).
 
 ### Two projects (they can be the same)
-- **Hub** `cloud-cap-506110` — where the app, Vertex/Gemini, and Cloud Logging live.
+- **Hub** `<HUB_PROJECT>` — where the app, Vertex/Gemini, and Cloud Logging live. (Our reference deployment uses `cloud-cap-506110`; substitute your own project id below.)
 - **Target(s)** — the project(s) being audited (read-only).
 
 ### Enable APIs (hub)
 ```bash
-gcloud config set project cloud-cap-506110
+gcloud config set project <HUB_PROJECT>
 gcloud services enable aiplatform.googleapis.com logging.googleapis.com
 ```
 ### Enable APIs (each target)
@@ -107,27 +117,27 @@ gcloud services enable recommender.googleapis.com cloudasset.googleapis.com moni
 ```
 ### Service account + least-privilege read-only roles
 ```bash
-gcloud iam service-accounts create cloudcap-agent --project cloud-cap-506110
+gcloud iam service-accounts create cloudcap-agent --project <HUB_PROJECT>
 # Hub: reason + audit
-gcloud projects add-iam-policy-binding cloud-cap-506110 \
-  --member="serviceAccount:cloudcap-agent@cloud-cap-506110.iam.gserviceaccount.com" --role="roles/aiplatform.user"
-gcloud projects add-iam-policy-binding cloud-cap-506110 \
-  --member="serviceAccount:cloudcap-agent@cloud-cap-506110.iam.gserviceaccount.com" --role="roles/logging.logWriter"
+gcloud projects add-iam-policy-binding <HUB_PROJECT> \
+  --member="serviceAccount:cloudcap-agent@<HUB_PROJECT>.iam.gserviceaccount.com" --role="roles/aiplatform.user"
+gcloud projects add-iam-policy-binding <HUB_PROJECT> \
+  --member="serviceAccount:cloudcap-agent@<HUB_PROJECT>.iam.gserviceaccount.com" --role="roles/logging.logWriter"
 # Each target: READ ONLY
 gcloud projects add-iam-policy-binding <TARGET> \
-  --member="serviceAccount:cloudcap-agent@cloud-cap-506110.iam.gserviceaccount.com" --role="roles/recommender.viewer"
+  --member="serviceAccount:cloudcap-agent@<HUB_PROJECT>.iam.gserviceaccount.com" --role="roles/recommender.viewer"
 gcloud projects add-iam-policy-binding <TARGET> \
-  --member="serviceAccount:cloudcap-agent@cloud-cap-506110.iam.gserviceaccount.com" --role="roles/cloudasset.viewer"
+  --member="serviceAccount:cloudcap-agent@<HUB_PROJECT>.iam.gserviceaccount.com" --role="roles/cloudasset.viewer"
 ```
 ### Auth for local dev (ADC)
 ```bash
 gcloud auth application-default login
 # optional: impersonate the SA instead of using your own creds
-gcloud config set auth/impersonate_service_account cloudcap-agent@cloud-cap-506110.iam.gserviceaccount.com
+gcloud config set auth/impersonate_service_account cloudcap-agent@<HUB_PROJECT>.iam.gserviceaccount.com
 ```
 ### Run live
 ```bash
-GOOGLE_CLOUD_PROJECT=cloud-cap-506110 CLOUDCAP_GEMINI=1 CLOUDCAP_LOCATIONS=us-central1 \
+GOOGLE_CLOUD_PROJECT=<HUB_PROJECT> CLOUDCAP_GEMINI=1 CLOUDCAP_LOCATIONS=us-central1 \
   python3 -m agents.run --mode live --project <TARGET>
 ```
 `--project` = project to AUDIT; `GOOGLE_CLOUD_PROJECT` = hub (Vertex + logging).

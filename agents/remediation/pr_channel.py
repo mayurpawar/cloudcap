@@ -430,9 +430,10 @@ async def remediate(ctx, findings: list[dict[str, Any]], project: str = "") -> l
             res = await ctx.remediation_channel.deliver({"finding": f, "proof": proof})
             used.append("pr")
 
-        # Ticket: when PR is off/frozen, or the PR couldn't proceed (conflict/blocked).
-        pr_stuck = res.get("status") in ("conflict_triage", "policy_blocked", "no_channel", "change_frozen")
-        if actions.get("issue") and (not pr_enabled or frozen or pr_stuck):
+        # Ticket: when the Issue action is enabled, file a tracking ticket for EVERY finding
+        # (an independent channel, like Slack) — so a finding that gets a PR also gets a
+        # backlog ticket, and alert-only findings still land in the tracker.
+        if actions.get("issue"):
             ticket = _open_ticket(f, res.get("reason", ""))
             used.append("issue")
             if res.get("status") in ("no_channel",):

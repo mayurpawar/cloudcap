@@ -26,13 +26,13 @@ can't create infra or mutate targets.
 **1. Auth as the bootstrap identity**
 ```bash
 gcloud auth application-default login          # an Owner/Editor on the hub project
-gcloud config set project cloud-cap-506110
+gcloud config set project <HUB_PROJECT>
 ```
 
 **2. Build & push the app image** (Artifact Registry)
 ```bash
 gcloud artifacts repositories create cloudcap --repository-format=docker --location=us-central1
-gcloud builds submit --tag us-central1-docker.pkg.dev/cloud-cap-506110/cloudcap/app:v1
+gcloud builds submit --tag us-central1-docker.pkg.dev/<HUB_PROJECT>/cloudcap/app:v1
 ```
 
 **3. Apply**
