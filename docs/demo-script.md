@@ -111,14 +111,12 @@ three pauses + the ~3:30 VO land you at a well-paced ~4:00.
 > govern two: a sandbox wired to a Git repo, and my production project, which I'm placing under
 > a change-freeze.
 >
-> This is the fleet — six agents: an orchestrator and five scanners — each with its own
-> least-privilege identity, verified live against Google Cloud IAM. This is the full enterprise
-> pattern: an Agent Registry that publishes and versions the approved fleet; an asynchronous
-> Runtime that scans unattended on a schedule — no chat, no prompting; a Memory Bank, so known
-> issues don't re-nag across scans; an Agent Gateway that policy-gates every action; Model Armor
-> guarding the inputs; and OpenTelemetry observability tracing every decision. All live — not
-> mocked. And governed by design: *the remediation agent has no cloud write access at all — it
-> can only propose.*
+> The fleet: six agents — an orchestrator and five scanners — each with its own least-privilege
+> identity, verified live against Google Cloud IAM. This is the full enterprise pattern: an Agent
+> Registry that publishes and versions the approved fleet; an asynchronous Runtime that scans
+> unattended on a schedule — no chat, no prompting; a Memory Bank, so known issues don't re-nag
+> across scans; an Agent Gateway that policy-gates every action; Model Armor guarding the inputs;
+> and OpenTelemetry observability tracing every decision. All live — not mocked.
 >
 > Now one read-only scan across both projects. Gemini 3.7 on Vertex AI ranks and narrates on
 > top of deterministic evidence — it explains the findings, it never invents them.
