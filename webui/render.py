@@ -959,7 +959,7 @@ def _doc_table(rows, headers=("Setting", "Where it lives", "Notes")):
         cells = "".join(f'<td class="px-3 py-2.5 align-top border-t border-outline-variant/20">{c}</td>' for c in r)
         body += f"<tr>{cells}</tr>"
     return ('<div class="overflow-x-auto rounded-lg border border-outline-variant/30">'
-            f'<table class="w-full text-sm"><thead class="bg-surface-container-low"><tr>{head}</tr></thead>'
+            f'<table class="w-full text-base"><thead class="bg-surface-container-low"><tr>{head}</tr></thead>'
             f'<tbody>{body}</tbody></table></div>')
 
 
@@ -986,7 +986,7 @@ def render_docs(project="demo-proj", topic=None):
             ('Inventory / IaC', 'Asset Inventory resource labels', 'roles/cloudasset.viewer · browser'),
             ('Audit trail', 'Cloud Logging (immutable, hash-chained)', 'write-only to its own log'),
         ], headers=("Pillar", "GCP source", "Role granted"))
-        + '<p class="text-xs">Grant these to <span class="' + _code + '">cc-runtime</span> on any project you '
+        + '<p class="text-sm">Grant these to <span class="' + _code + '">cc-runtime</span> on any project you '
         'add to Scan Scope; no API keys are ever used.</p>')
 
     jira = (
@@ -1040,7 +1040,7 @@ def render_docs(project="demo-proj", topic=None):
         f'secrets). Secrets are written to <span class="{_code}">Secret Manager</span> by the app and read at '
         'runtime via environment injection. They are never committed, never printed to logs, and never stored in '
         'Firestore or Terraform vars.</p>'
-        '<p class="text-xs">Two-identity model: Terraform apply runs as an <b>owner</b> (bootstrap); the running '
+        '<p class="text-sm">Two-identity model: Terraform apply runs as an <b>owner</b> (bootstrap); the running '
         f'app uses the least-privilege <span class="{_code}">cc-runtime</span> SA, which cannot write to your cloud.</p>')
 
     auth = (
@@ -1073,7 +1073,7 @@ def render_docs(project="demo-proj", topic=None):
         '<li><b class="text-on-surface">Every finding links to its control and frameworks</b> on the '
         '<a href="/compliance" class="text-primary hover:underline">Compliance</a> page, so you can trace the "why".</li>'
         '</ul>'
-        '<p class="text-xs">Contact: mayurpawar1@gmail.com</p>')
+        '<p class="text-sm">Contact: mayurpawar1@gmail.com</p>')
 
     # (slug, icon, title, one-line blurb, status badge, full body)
     topics = [

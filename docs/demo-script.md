@@ -129,6 +129,10 @@ three pauses + the ~3:30 VO land you at a well-paced ~4:00.
 > Request that removes the public access at the source. Detection to remediation — a closed
 > loop. And nothing auto-merges; a human approves.
 >
+> And detection is only half of it — the fleet acts. For every finding, across the channels your
+> team already uses: a Pull Request for the fix, a Slack alert for the on-call, a JIRA ticket for
+> the backlog — each governed by per-project policy. No one prompts it; it just acts.
+>
 > My production project is under a change-freeze, so CloudCap still detects but proposes no
 > automated changes to it. And it found real waste — about a hundred and thirty dollars a month
 > in idle spend, ready to reclaim.
