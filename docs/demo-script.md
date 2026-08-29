@@ -66,50 +66,46 @@ working; you reset app state to a fresh onboarding so the "first scan" populates
 
 ## 3. The screenplay (≤ 4:00, shot-by-shot)
 
-| Time | On screen / action | Say (narration) | Pillars · GCP proof |
-|---|---|---|---|
-| **0:00–0:16** | Title card "CloudCap — governed agent fleet for GCP", then the repo README. | "Every cloud quietly drifts — a bucket goes public in the console, an account gets over-privileged, a machine sits idle. Code scanners never see it, because it never touched the code. CloudCap watches the **live cloud**, proves what it finds, and fixes it by Pull Request." | — |
-| **0:16–0:44** | **Terminal:** `git clone …/cloudcap`, `cd terraform/fleet`, `terraform apply`. Terraform prints `dashboard_url = https://…run.app`. Open it. | "The whole fleet is one Terraform apply to Cloud Run. It outputs its own URL — map it to any domain — and comes up self-onboarding, read-only against your projects." | ID · **Cloud Run URL** |
-| **0:44–1:05** | **Firebase Google sign-in** → **Onboarding**: discover projects, select `cc-chaos-fffbba` + `kitearc-prod`. | "Sign in with Firebase — I'm the admin. It discovers my real GCP projects. I'll govern two: a sandbox wired to a Git repo, and my production project — which I'm putting under a change-freeze." | ID |
-| **1:05–1:28** | **Hub → Components.** 6-agent **Agent Registry** table (identity-verified badges); pillar rows all **LIVE**. | "The fleet: six agents, each its own least-privilege service account, verified live against Google Cloud IAM. Registry, Gateway, Model Armor, Observability, Ownership — all live, not mocked." | REG, ID, GW, MA, OBS, OWN |
-| **1:28–1:50** | Click **Run scan**. *(Freeze frame; resume on the green "Scan complete" banner.)* Board paints findings across both projects; **Gemini executive summary** on top. | "One read-only scan of two real projects. Gemini 3.7 on Vertex AI ranks and narrates on top of deterministic evidence — it explains the findings, it never invents them." | GW, REG · **Vertex AI** |
-| **1:50–2:35** | Open **"Publicly accessible Bucket (allUsers)"** (critical, `cc-chaos-fffbba`). Show **Ownership**: "Managed by `mayurpawar/cc-chaos-infra` → `google_storage_bucket.public_bucket`". Click **View Pull Request** → real GitHub PR removing the `allUsers` binding from `buckets.tf`. | "This bucket is public to the entire internet — detected on the **live cloud**, right now. An IaC scanner would miss it if someone made it public by hand. CloudCap traces the resource to the Terraform that owns it — from real state in GCS — and opens a **Pull Request** that removes the public binding at the source. Nothing auto-merges; a human approves. That's the whole idea: detect on the cloud, fix in the code." | OWN, GW · **GCS state + GitHub PR** |
-| **2:35–2:55** | Open a **`kitearc-prod`** finding → show the **change-freeze** banner (detect-only, no PR). Then the **cost** finding: ~$133/mo idle spend. | "My production project is under a change-freeze — CloudCap still detects, but proposes **no** automated changes. And it found real waste: about $133 a month in idle spend, ready to reclaim." | GW, MEM · **Recommender** |
-| **2:55–3:15** | Open **"Tool-poisoning attempt blocked by Model Armor"**. | "One object in a public bucket was *named* as a prompt injection — bait to hijack the agent. Model Armor caught it and turned the attack into a finding instead of executing it." | MA, OBS |
-| **3:15–3:35** | Contrast the **ClickOps** (unmanaged) resource vs the managed bucket in the Ownership column. Then **Compliance**: SOC 2 / CIS / ISO / PCI, failing controls linked to findings. | "Every resource is traced to its owner — or flagged as ClickOps when it's in no state at all. And every finding maps to real controls across four frameworks." | OWN, OBS |
-| **3:35–3:52** | **Google Cloud Console:** Cloud Run `cloudcap` (green, `.run` URL) → glance Vertex AI, Firestore, Model Armor template, the **Cloud Logging** audit trail. | "All on Google Cloud: Cloud Run for the fleet, Vertex AI for Gemini, Firestore for state, Model Armor for the guardrail, and an immutable Cloud Logging trace of every action." | **GCP deployment proof (required)** · OBS |
-| **3:52–4:00** | Board headline (findings + severities) → tagline card. | "CloudCap — watch the live cloud, prove the risk, fix it by Pull Request. A governed agent fleet, safe enough to point at production." | — |
+The **Say** column is the exact narration from the VO script (§3b / `VO_script`) — pair each line
+with the on-screen action beside it. Times are intentionally omitted; pace to the VO + the pause
+points in §3b, not to a clock.
+
+| On screen / action | Say (narration — verbatim VO) | Pillars · GCP proof |
+|---|---|---|
+| Title card "CloudCap — governed agent fleet for GCP", then the repo README. | "Every cloud quietly drifts — a bucket goes public in the console, an account gets over-privileged, a machine sits idle. Code scanners never see it, because it never touched the code. CloudCap watches the live cloud, proves what it finds, and fixes it by Pull Request." | — |
+| **Terminal:** `git clone …/cloudcap`, `cd terraform/fleet`, `terraform apply`. Terraform prints `dashboard_url = https://…run.app`. Open it. | "The whole fleet is one Terraform apply to Cloud Run. It outputs its own URL — map it to any domain — and comes up self-onboarding, read-only against your projects." | ID · **Cloud Run URL** |
+| **Firebase Google sign-in** → **Onboarding**: discover projects, select `cc-chaos-fffbba` + `kitearc-prod` (add the Slack webhook on the cc-chaos card). | "Sign in with Firebase — I'm the admin. It discovers my real GCP projects. I'll govern two: a sandbox wired to a Git repo, and my production project — which I'm putting under a change-freeze." | ID |
+| **Hub → Components.** 6-agent **Agent Registry** table (identity-verified badges); pillar rows all **LIVE**. | "The fleet: six agents — an orchestrator and five scanners — each with its own least-privilege identity, verified live against Google Cloud IAM. This is the full enterprise pattern: an Agent Registry that publishes and versions the approved fleet; an asynchronous Runtime that scans unattended on a schedule — no chat, no prompting; a Memory Bank, so known issues don't re-nag across scans; an Agent Gateway that policy-gates every action; Model Armor guarding the inputs; and OpenTelemetry observability tracing every decision. All live — not mocked." | REG, ID, GW, MA, OBS, OWN |
+| Click **Run scan**. *(Freeze frame; resume on the green "Scan complete" banner.)* Board paints findings across both projects; **Gemini executive summary** on top. | "One read-only scan of two real projects. Gemini 3.7 on Vertex AI ranks and narrates on top of deterministic evidence — it explains the findings, it never invents them." | GW, REG · **Vertex AI** |
+| Open **"Publicly accessible Bucket (allUsers)"** (critical, `cc-chaos-fffbba`). Show **Ownership** → `mayurpawar/cc-chaos-infra` → `google_storage_bucket.public_bucket`. Click **View Pull Request** → real PR removing the `allUsers` binding from `buckets.tf`. | "This bucket is public to the entire internet — detected on the live cloud, right now. An IaC scanner would miss it if someone made it public by hand. CloudCap traces the resource to the Terraform that owns it — from real state in GCS — and opens a Pull Request that removes the public binding at the source. Nothing auto-merges; a human approves. That's the whole idea: detect on the cloud, fix in the code." | OWN, GW · **GCS state + GitHub PR** |
+| Cut to **Slack** (a card per cc-chaos finding — the bucket card carries the PR link) → **JIRA / DEVPOST** board (tickets filed). ~5s each. | "And detection is only half of it — the fleet acts. For every finding, across the channels your team already uses: a Pull Request for the fix, a Slack alert for the on-call, a JIRA ticket for the backlog — each governed by per-project policy. No one prompts it; it just acts." | GW · **Slack + JIRA** |
+| Open a **`kitearc-prod`** finding → the **change-freeze** banner (if set during setup) = detect-only; then the **cost** finding (~$133/mo idle spend). | "My production project is under a change-freeze — CloudCap still detects, but proposes no automated changes. And it found real waste: about $133 a month in idle spend, ready to reclaim." | GW, MEM · **Recommender** |
+| Open **"Tool-poisoning attempt blocked by Model Armor"**. | "One object in a public bucket was named as a prompt injection — bait to hijack the agent. Model Armor caught it and turned the attack into a finding instead of executing it." | MA, OBS |
+| Contrast the **ClickOps** (unmanaged) resource vs the managed bucket in the Ownership column. Then **Compliance**: SOC 2 / CIS / ISO / PCI, failing controls linked to findings. | "Every resource is traced to its owner — or flagged as ClickOps when it's in no state at all. And every finding maps to real controls across four frameworks." | OWN, OBS |
+| **Google Cloud Console:** Cloud Run `cloudcap` (green, `.run` URL) → Vertex AI, Firestore, Model Armor template, **Cloud Scheduler** (`cloudcap-daily-scan`), and the **Cloud Logging** audit trail. | "All on Google Cloud: Cloud Run for the fleet, Vertex AI for Gemini, Firestore for state, Model Armor for the guardrail, and an immutable Cloud Logging trace of every action." | **GCP deployment proof (required)** · OBS |
+| Board headline (findings + severities) → tagline card. | "CloudCap — watch the live cloud, prove the risk, fix it by Pull Request. A governed agent fleet, safe enough to point at production." | — |
 
 ---
 
 ## 3b. Continuous VO script (paste into ElevenLabs — pure narration, no cues)
 
-Paste the block below **as one piece**. It's ~540 words ≈ **3:20–3:40** at a natural pace
-(the shorter earlier version measured 158s; this leads with the **autonomous / background**
-agentic story — criterion #1, 40% — plus the differentiator, the agent architecture, and an
-explicit value/close). VO does **not** need to fill the full 4:00 — hold **deliberate pauses**
-(see "Pause points" below) so viewers absorb what's on screen. Trim the *italicised* sentences
-first if you need to shave time.
+This is the **exact narration** from the shot table above (§3), assembled as one block for
+text-to-speech (identical to `AA_Vid/VO_script`). Paste it into ElevenLabs as one piece. The VO
+does **not** need to fill the full 4:00 — hold **deliberate pauses** so viewers absorb the screen.
 
-**Pause points (stop talking, let the screen breathe):** ① while the **scan runs** → freeze/hold
-~a few seconds on the green "Scan complete" banner; ② right after the **Pull Request opens** —
-linger on the diff removing `allUsers`; ③ on the **Google Cloud Console** proof shot. These
-three pauses + the ~3:30 VO land you at a well-paced ~4:00.
+**Pause points (stop talking, let the screen breathe):** ① while the **scan runs** → hold on the
+green "Scan complete" banner; ② right after the **Pull Request opens** — linger on the diff
+removing `allUsers`; ③ during the **Slack + JIRA** reveal; ④ on the **Google Cloud Console** shot.
 
-> Every cloud quietly drifts. A bucket goes public in the console. An account gets
-> over-privileged. A machine sits idle, burning money. The tools that scan your Terraform never
-> catch it — because it never touched the code.
+> Every cloud quietly drifts — a bucket goes public in the console, an account gets
+> over-privileged, a machine sits idle. Code scanners never see it, because it never touched the
+> code. CloudCap watches the live cloud, proves what it finds, and fixes it by Pull Request.
 >
-> CloudCap is different. It isn't a chatbot you prompt — it's a fleet of background agents that
-> run on a schedule, unattended. They scan your live cloud, decide what matters, and open the
-> fix as a Pull Request. Autonomously.
+> The whole fleet is one Terraform apply to Cloud Run. It outputs its own URL — map it to any
+> domain — and comes up self-onboarding, read-only against your projects.
 >
-> The entire fleet deploys with one Terraform apply to Cloud Run. It prints its own URL — map
-> it to any domain — and comes up self-onboarding, read-only against your projects.
->
-> I sign in with Firebase — I'm the admin. CloudCap discovers my real GCP projects. I'll
-> govern two: a sandbox wired to a Git repo, and my production project, which I'm placing under
-> a change-freeze.
+> Sign in with Firebase — I'm the admin. It discovers my real GCP projects. I'll govern two: a
+> sandbox wired to a Git repo, and my production project — which I'm putting under a change-freeze.
 >
 > The fleet: six agents — an orchestrator and five scanners — each with its own least-privilege
 > identity, verified live against Google Cloud IAM. This is the full enterprise pattern: an Agent
@@ -118,38 +114,33 @@ three pauses + the ~3:30 VO land you at a well-paced ~4:00.
 > across scans; an Agent Gateway that policy-gates every action; Model Armor guarding the inputs;
 > and OpenTelemetry observability tracing every decision. All live — not mocked.
 >
-> Now one read-only scan across both projects. Gemini 3.7 on Vertex AI ranks and narrates on
-> top of deterministic evidence — it explains the findings, it never invents them.
+> One read-only scan of two real projects. Gemini 3.7 on Vertex AI ranks and narrates on top of
+> deterministic evidence — it explains the findings, it never invents them.
 >
-> Here's the difference. This bucket is public to the entire internet — detected on the live
-> cloud, right now. A code scanner would miss it if someone made it public by hand. CloudCap
-> traces the resource to the Terraform that owns it, from real state in GCS, and opens a Pull
-> Request that removes the public access at the source. Detection to remediation — a closed
-> loop. And nothing auto-merges; a human approves.
+> This bucket is public to the entire internet — detected on the live cloud, right now. An IaC
+> scanner would miss it if someone made it public by hand. CloudCap traces the resource to the
+> Terraform that owns it — from real state in GCS — and opens a Pull Request that removes the
+> public binding at the source. Nothing auto-merges; a human approves. That's the whole idea:
+> detect on the cloud, fix in the code.
 >
 > And detection is only half of it — the fleet acts. For every finding, across the channels your
 > team already uses: a Pull Request for the fix, a Slack alert for the on-call, a JIRA ticket for
 > the backlog — each governed by per-project policy. No one prompts it; it just acts.
 >
-> My production project is under a change-freeze, so CloudCap still detects but proposes no
-> automated changes to it. And it found real waste — about a hundred and thirty dollars a month
-> in idle spend, ready to reclaim.
+> My production project is under a change-freeze — CloudCap still detects, but proposes no
+> automated changes. And it found real waste: about $133 a month in idle spend, ready to reclaim.
 >
-> One object in that public bucket was named as a prompt injection — bait to hijack the agent.
-> Model Armor caught it and turned the attack into a finding, instead of executing it. The
-> guardrail, working on live input.
+> One object in a public bucket was named as a prompt injection — bait to hijack the agent. Model
+> Armor caught it and turned the attack into a finding instead of executing it.
 >
 > Every resource is traced to its owner — or flagged as ClickOps when it's in no state at all.
-> *And every finding maps to real controls across SOC 2, CIS, ISO, and PCI — audit evidence,
-> generated automatically.*
+> And every finding maps to real controls across four frameworks.
 >
-> All of it on Google Cloud: Cloud Run for the fleet, Vertex AI for Gemini, Firestore for
-> state, Model Armor for the guardrail, and an immutable Cloud Logging trace of every action.
+> All on Google Cloud: Cloud Run for the fleet, Vertex AI for Gemini, Firestore for state, Model
+> Armor for the guardrail, and an immutable Cloud Logging trace of every action.
 >
-> Everything you just saw — detect, rank, trace the owner, draft the fix — the agents did on
-> their own, with no prompting. Other tools stop at a dashboard full of alerts; CloudCap closes
-> the loop. A governed agent fleet that runs in the background — finding risk, proving it, and
-> handing you the fix while you sleep. Safe enough to point at production.
+> CloudCap — watch the live cloud, prove the risk, fix it by Pull Request. A governed agent fleet,
+> safe enough to point at production.
 
 ---
 
