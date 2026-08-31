@@ -329,7 +329,7 @@ def make_handler(project):
                     SESSIONS.save(self._sid(), auth)  # persist the switch (Firestore/mem)
                 return self._redirect(self.headers.get("Referer", "/"))
 
-            # --- Onboarding wizard steps (admin-only) ---
+            # --- Onboarding wizard (admin-only) + scan (admin or operator) ---
             if self.path.startswith("/onboarding/") or self.path == "/scan/run":
                 from datetime import date
 
@@ -339,7 +339,8 @@ def make_handler(project):
                 from agents.policy import ACTIONS, ActionPolicy
                 from agents.project_settings import ProjectSettings
                 from agents.sources import SourcesConfig, all_projects
-                if auth["role"] != "admin":
+                # Operators may re-scan; onboarding/config remains admin-only.
+                if auth["role"] != "admin" and self.path != "/scan/run":
                     return self._redirect("/")
                 st = OnboardingState()
 

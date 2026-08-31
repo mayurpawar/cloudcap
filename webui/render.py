@@ -282,17 +282,60 @@ def _footer():
         '<span class="font-mono">v0.1.0</span></div></footer>')
 
 
+# Actions an Operator (read-only) may still perform. Everything else is Admin-only:
+# the UI disables those controls client-side (the server enforces it too).
+_RO_ALLOWED_ACTIONS = ("/scan/run", "/suppress", "/login")
+
+
+def _read_only_banner():
+    return ('<div class="flex items-center gap-2 rounded-lg border border-outline-variant/30 '
+            'bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant">'
+            '<span class="material-symbols-outlined text-base">visibility</span>'
+            '<span><b class="text-on-surface">Read-only access.</b> You can view everything, '
+            'run a scan, and accept findings. Configuration is admin-only.</span></div>')
+
+
+def _read_only_script():
+    """Disable every mutating control except the operator-allowed ones, and mark them
+    'Only admins can change this'. Server-side gating is the real guard; this makes it
+    obvious (no dead clicks). Runs after all server-side HTML transforms."""
+    allow = "{" + ",".join(f"'{a}':1" for a in _RO_ALLOWED_ACTIONS) + "}"
+    return (
+        "<script>(function(){var A=" + allow + ";var T='Only admins can change this';"
+        "function note(f){var n=document.createElement('div');"
+        "n.className='text-[10px] font-semibold text-on-surface-variant/70 mt-1';"
+        "n.textContent=T;f.appendChild(n);}"
+        "document.querySelectorAll('form').forEach(function(f){"
+        "var a=f.getAttribute('action')||'';if(A[a])return;"
+        "f.querySelectorAll('input,select,textarea').forEach(function(el){el.disabled=true;el.title=T;});"
+        "var btns=f.querySelectorAll('button,[type=submit]');"
+        "btns.forEach(function(el){el.style.display='none';});"
+        "if(btns.length)note(f);});"
+        "document.querySelectorAll('[onchange]').forEach(function(el){"
+        "if(/ccToggle|ccPol|ccScope|ccChan/.test(el.getAttribute('onchange')||'')){"
+        "el.disabled=true;el.removeAttribute('onchange');el.title=T;}});"
+        "document.querySelectorAll('[onclick]').forEach(function(el){"
+        "var m=(el.getAttribute('onclick')||'').match(/ccSave\\('([^']+)'/);"
+        "if(m&&!A[m[1]]){el.style.display='none';}});"
+        "})();</script>"
+    )
+
+
 def shell(html, active, project, auth, title=None):
     """Replace each screen's sidebar + header with ONE canonical shell; content stays."""
     html = re.sub(r"<header[^>]*>.*?</header>", "", html, count=1, flags=re.S)  # drop screen's header
+    read_only = (auth or {}).get("role") != "admin"
     canon = ('<body class="bg-background text-on-background min-h-screen flex antialiased">'
              + _sidebar(active, project)
              + '<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">'
              + _header(active, auth, title)
-             + '<div class="p-8 lg:p-12 flex-1 space-y-8">')
+             + '<div class="p-8 lg:p-12 flex-1 space-y-8">'
+             + (_read_only_banner() if read_only else ""))
     html = re.sub(r"<body[^>]*>.*?<main[^>]*>", lambda m: canon, html, count=1, flags=re.S)
     html = html.replace("</main>", "</div>" + _footer() + "</main>", 1)
     html = html.replace(" ml-64", "")
+    if read_only:
+        html += _read_only_script()
     return html
 
 
