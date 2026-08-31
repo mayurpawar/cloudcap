@@ -1342,7 +1342,7 @@ def render_history(project="demo-proj", page=1):
 
     th = ('<tr class="bg-surface-container-low text-sm uppercase tracking-wider text-on-surface-variant '
           'border-b border-outline-variant/60">'
-          '<th class="px-4 py-3 font-semibold">When</th><th class="px-4 py-3 font-semibold">Mode</th>'
+          '<th class="px-4 py-3 font-semibold">When (UTC)</th><th class="px-4 py-3 font-semibold">Mode</th>'
           '<th class="px-4 py-3 font-semibold">Target</th><th class="px-4 py-3 font-semibold text-center">Findings</th>'
           '<th class="px-4 py-3 font-semibold text-center">Critical</th><th class="px-4 py-3 font-semibold text-center">High</th>'
           '<th class="px-4 py-3 font-semibold text-center">New</th><th class="px-4 py-3 font-semibold text-center">Resolved</th>'
