@@ -52,8 +52,22 @@ cp terraform.tfvars.example terraform.tfvars   # edit: hub_project_id, image, ad
 terraform init && terraform apply              # prints the dashboard_url
 ```
 
-> Run locally in **mock mode** first (no cloud): `python3 -m agents.run --mode mock --project demo-proj`.
-> The `terraform/chaos-env` project is an **optional** seeded eval target for our own testing — not required to install.
+## Quickstart (local dev / eval)
+Try the agents without deploying the hosted fleet — this is the flow shown in the demo video.
+
+```bash
+# 1. (Optional) Seed a throwaway GCP project with known ground-truth issues — our eval target.
+cd terraform/chaos-env
+terraform init && terraform apply -var project_id=YOUR_TEST_PROJECT
+
+# 2. Run the agents locally.
+pip install -e .
+python -m agents.run --mode mock --project demo-proj          # no cloud — instant, safe default
+python -m agents.run --mode live --project YOUR_TEST_PROJECT   # read-only, against real GCP data
+```
+
+> `terraform/chaos-env` is **optional** — it's our seeded eval target, not required to install.
+> To deploy the full hosted fleet (Cloud Run + Firestore), use the **Install (customer side)** steps above.
 
 ## How users interact
 - **Discovery:** agents appear in the org **Agent Registry** for cross-dept use.
