@@ -198,7 +198,10 @@ resource "google_cloud_run_v2_service" "dashboard" {
 
   template {
     service_account = google_service_account.runtime.email
-    scaling { min_instance_count = 0 } # scale-to-zero — we practice what we preach
+    scaling {
+      min_instance_count = 0                 # scale-to-zero — we practice what we preach
+      max_instance_count = var.max_instances # cap cost/blast-radius from spikes or public-URL abuse
+    }
 
     containers {
       image = var.image

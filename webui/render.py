@@ -779,7 +779,7 @@ def render_finding(project, fp):
 
     # Lifecycle
     if rec:
-        life = (_kv("State", esc(rec.state)) + _kv("First seen", esc(rec.first_seen)) + _kv("Last seen", esc(rec.last_seen))
+        life = (_kv("State", esc(rec.state)) + _kv("First seen", (esc(rec.first_seen) + " UTC") if rec.first_seen else "—") + _kv("Last seen", (esc(rec.last_seen) + " UTC") if rec.last_seen else "—")
                 + _kv("Occurrences", str(rec.occurrences)) + _kv("Reopens", str(rec.reopen_count)))
     else:
         life = _kv("State", "new (this scan)")
@@ -1229,7 +1229,7 @@ def _scan_history():
             '<summary class="flex items-center justify-between gap-3 px-4 py-2 cursor-pointer '
             'hover:bg-surface-container-low text-sm select-none">'
             f'<span class="flex items-center gap-2 min-w-0"><span class="font-mono text-xs text-on-surface-variant">'
-            f'{esc(h.get("ts",""))}</span>{badge}</span>'
+            f'{esc(h.get("ts","")) + (" UTC" if h.get("ts") else "")}</span>{badge}</span>'
             f'<span class="text-xs text-on-surface-variant whitespace-nowrap">{h.get("findings",0)} findings · '
             f'${h.get("savings",0):,.0f}/mo</span></summary>'
             '<div class="px-4 py-2.5 text-xs text-on-surface-variant bg-surface-container-low/40 space-y-0.5">'
@@ -1449,7 +1449,7 @@ def render_board(project="demo-proj", page=1, scanned=False):
     ts = d.get("scan_ts", "")
     scan_bar = (
         '<div class="flex items-center justify-between mb-4">'
-        f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span> · '
+        f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span>{" UTC" if ts else ""} · '
         f'<span class="font-semibold">{"LIVE" if d.get("mode")=="live" else "DEMO"}</span></p>'
         + _scan_button("Re-scan", secondary=True) + '</div>')
     # Unmistakable completion signal after a scan finishes (the POST redirects here with

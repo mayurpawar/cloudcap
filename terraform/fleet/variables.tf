@@ -33,6 +33,12 @@ variable "operator_emails" {
   default     = []
 }
 
+variable "max_instances" {
+  description = "Cloud Run max instance ceiling — caps cost/blast-radius from traffic spikes or public-URL abuse."
+  type        = number
+  default     = 5
+}
+
 variable "display_names" {
   description = "Optional friendly dashboard names for shared/role accounts, as \"email:Name,email:Name\" (→ CLOUDCAP_DISPLAY_NAMES)."
   type        = string
