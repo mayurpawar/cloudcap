@@ -343,6 +343,19 @@ def _scanning_script():
     )
 
 
+def _scan_submit_lock():
+    """Always on, NO polling (a one-time click listener — never keeps the instance warm):
+    the moment ANY scan form is submitted, disable EVERY scan button on the page so a
+    second scan can't be fired from the same page."""
+    return (
+        "<script>(function(){function lock(){"
+        "document.querySelectorAll('form[action=\"/scan/run\"] button').forEach("
+        "function(b){b.disabled=true;b.title='Scan in progress…';});}"
+        "document.querySelectorAll('form[action=\"/scan/run\"]').forEach("
+        "function(f){f.addEventListener('submit',lock);});})();</script>"
+    )
+
+
 def shell(html, active, project, auth, title=None):
     """Replace each screen's sidebar + header with ONE canonical shell; content stays."""
     from agents import scan_status
@@ -362,8 +375,9 @@ def shell(html, active, project, auth, title=None):
     html = html.replace(" ml-64", "")
     if read_only:
         html += _read_only_script()
+    html += _scan_submit_lock()      # always — cheap, no polling, blocks same-page double-fire
     if scanning:
-        html += _scanning_script()
+        html += _scanning_script()   # poll only while a scan runs (instance already up)
     return html
 
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import threading
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -21,6 +22,11 @@ from webui.render import (neutralize, normalize_layout, render_board, render_com
                           render_docs, render_finding, render_history, render_hub,
                           render_integrations, render_login, render_logs, render_not_ready,
                           render_policy, render_sources, restyle, shell)
+
+
+# Serializes scan starts so a double-click or an overlapping scheduler run can't
+# launch two scans at once (belt-and-suspenders with the client-side button lock).
+_SCAN_LOCK = threading.Lock()
 
 
 def _final(html):
@@ -304,7 +310,12 @@ def make_handler(project):
                 from agents import scan_status
                 scan_mode = os.environ.get("CLOUDCAP_SCAN_MODE", "mock")
                 scan_proj = os.environ.get("CLOUDCAP_SCAN_PROJECT", "")
-                scan_status.begin()
+                with _SCAN_LOCK:  # don't overlap with a manual scan already in flight
+                    if scan_status.status().get("active"):
+                        return self._send(_json.dumps({"status": "skipped",
+                                                       "reason": "scan already running"}),
+                                          ctype="application/json")
+                    scan_status.begin()
                 try:
                     res = asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
                     return self._send(_json.dumps({"status": "ok", "trigger": "scheduler",
@@ -390,9 +401,12 @@ def make_handler(project):
 
                     from agents.scan import run_scan
                     from agents import scan_status
+                    with _SCAN_LOCK:  # refuse to start a second scan while one is running
+                        if scan_status.status().get("active"):
+                            return self._redirect("/board")
+                        scan_status.begin()
                     scan_mode = os.environ.get("CLOUDCAP_SCAN_MODE", "mock")
                     scan_proj = os.environ.get("CLOUDCAP_SCAN_PROJECT", project)
-                    scan_status.begin()
                     try:
                         asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
                     finally:
