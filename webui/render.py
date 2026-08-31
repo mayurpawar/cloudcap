@@ -366,6 +366,38 @@ def _scan_submit_lock():
     )
 
 
+def _welcome_modal():
+    """One-per-session (sessionStorage) note shown on the first page after login: the daily
+    scheduler is deliberately paused for cost, but the automation and data are real. Custom
+    HTML modal — NOT a browser dialog (no alert/confirm)."""
+    return (
+        '<div id="cc-welcome" style="display:none" class="fixed inset-0 z-[100] flex items-center '
+        'justify-center bg-black/40 p-4">'
+        '<div class="max-w-lg w-full rounded-xl bg-surface border border-outline-variant/40 shadow-xl p-6">'
+        '<div class="flex items-center gap-2 mb-3">'
+        '<span class="material-symbols-outlined text-primary select-none">info</span>'
+        '<h2 class="text-lg font-bold text-on-surface">A quick note on this demo</h2></div>'
+        '<p class="text-sm text-on-surface-variant leading-relaxed">Every finding, scan, and '
+        'audit-log entry through <b class="text-on-surface">31 Aug 2026</b> is <b class="text-on-surface">'
+        'real</b> — produced live against a dedicated GCP test project seeded with deliberately-flawed cost '
+        'and security resources. To keep judging-period costs near zero, that test project has been '
+        '<b class="text-on-surface">decommissioned</b> and the <b class="text-on-surface">daily Cloud '
+        'Scheduler scan is deliberately paused</b>. The unattended daily automation is real — proven in the '
+        'demo video and the immutable audit log — and resumes with one command. Everything else here is '
+        'exactly as it ran live. Enjoy exploring!</p>'
+        '<div class="mt-5 flex justify-end">'
+        '<button id="cc-welcome-ok" class="bg-primary text-on-primary rounded-lg px-4 py-2 text-sm '
+        'font-bold hover:bg-primary/90">Got it</button></div></div></div>'
+        "<script>(function(){function hide(){var m=document.getElementById('cc-welcome');"
+        "if(m)m.style.display='none';try{sessionStorage.setItem('cc_welcome_seen','1');}catch(e){}}"
+        "try{if(!sessionStorage.getItem('cc_welcome_seen')){var m=document.getElementById('cc-welcome');"
+        "if(m)m.style.display='flex';}}catch(e){}"
+        "var ok=document.getElementById('cc-welcome-ok');if(ok)ok.addEventListener('click',hide);"
+        "var mm=document.getElementById('cc-welcome');if(mm)mm.addEventListener('click',function(e){"
+        "if(e.target===mm)hide();});})();</script>"
+    )
+
+
 def shell(html, active, project, auth, title=None):
     """Replace each screen's sidebar + header with ONE canonical shell; content stays."""
     from agents import scan_status
@@ -388,6 +420,7 @@ def shell(html, active, project, auth, title=None):
     html += _scan_submit_lock()      # always — cheap, no polling, blocks same-page double-fire
     if scanning:
         html += _scanning_script()   # poll only while a scan runs (instance already up)
+    html += _welcome_modal()         # one-per-session note about the paused scheduler / demo state
     return html
 
 
