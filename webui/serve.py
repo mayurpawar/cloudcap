@@ -405,7 +405,9 @@ def make_handler(project):
             # Config mutations are Admin-only.
             admin_routes = {"/sources/save", "/sources/toggle", "/sources/discover",
                             "/sources/project/save", "/policy/save", "/policy/toggle",
-                            "/governance/save", "/jira/save", "/compliance/scope/toggle"}
+                            "/governance/save", "/jira/save", "/compliance/scope/toggle",
+                            "/integrations/add", "/integrations/update",
+                            "/integrations/test", "/integrations/testall"}
             if self.path in admin_routes and auth["role"] != "admin":
                 return self._redirect(back)
 
