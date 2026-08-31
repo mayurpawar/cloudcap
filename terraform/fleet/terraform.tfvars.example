@@ -9,6 +9,9 @@ image = "us-central1-docker.pkg.dev/your-hub-project/cloudcap/app:v1"
 
 # Dashboard admins + auth. firebase | oidc | proxy | dev.
 admin_emails   = ["you@example.com"]
+# Read-only dashboard users (e.g. reviewers/judges) + optional friendly names.
+# operator_emails = ["reviewer@example.com"]
+# display_names   = "reviewer@example.com:Reviewer"
 auth_provider  = "firebase"
 gemini_enabled = true
 gemini_model   = "gemini-3.7-flash"          # must be Gemini 3.5+ (served from the global endpoint)

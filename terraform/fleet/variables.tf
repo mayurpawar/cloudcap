@@ -27,6 +27,18 @@ variable "admin_emails" {
   default     = []
 }
 
+variable "operator_emails" {
+  description = "Emails granted the read-only Operator role (e.g. hackathon judges; comma-joined into CLOUDCAP_OPERATORS)."
+  type        = list(string)
+  default     = []
+}
+
+variable "display_names" {
+  description = "Optional friendly dashboard names for shared/role accounts, as \"email:Name,email:Name\" (→ CLOUDCAP_DISPLAY_NAMES)."
+  type        = string
+  default     = ""
+}
+
 variable "auth_provider" {
   description = "Dashboard auth: firebase | oidc | proxy | dev. Use 'proxy' when fronting with IAP."
   type        = string

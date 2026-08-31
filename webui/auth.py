@@ -46,15 +46,10 @@ def _load_users() -> dict:
 
 # Friendly display names for shared/role accounts (e.g. hackathon judges), so the
 # dashboard greets them by role rather than a bare email. These win over the identity
-# provider's name. Overlaid by env CLOUDCAP_DISPLAY_NAMES = "email:Name,email:Name".
-_DISPLAY_NAMES = {
-    "testing@devpost.com": "DevPost Judge",
-    "cloudhackathons@google.com": "Hackathon Judge",
-}
-
-
+# provider's name. Config-only (kept out of the repo): set env
+# CLOUDCAP_DISPLAY_NAMES = "email:Name,email:Name" (wired from terraform.tfvars).
 def _display_names() -> dict:
-    names = dict(_DISPLAY_NAMES)
+    names: dict[str, str] = {}
     for pair in os.environ.get("CLOUDCAP_DISPLAY_NAMES", "").split(","):
         e, _, n = pair.partition(":")
         if e.strip() and n.strip():

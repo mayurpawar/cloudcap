@@ -216,6 +216,14 @@ resource "google_cloud_run_v2_service" "dashboard" {
         value = join(",", var.admin_emails)
       }
       env {
+        name  = "CLOUDCAP_OPERATORS"
+        value = join(",", var.operator_emails)
+      }
+      env {
+        name  = "CLOUDCAP_DISPLAY_NAMES"
+        value = var.display_names
+      }
+      env {
         name  = "CLOUDCAP_GEMINI"
         value = var.gemini_enabled ? "1" : ""
       }
