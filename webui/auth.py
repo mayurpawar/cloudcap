@@ -43,6 +43,25 @@ def _load_users() -> dict:
             users.setdefault(e.strip().lower(), "operator")
     return users
 
+
+# Friendly display names for shared/role accounts (e.g. hackathon judges), so the
+# dashboard greets them by role rather than a bare email. These win over the identity
+# provider's name. Overlaid by env CLOUDCAP_DISPLAY_NAMES = "email:Name,email:Name".
+_DISPLAY_NAMES = {
+    "testing@devpost.com": "DevPost Judge",
+    "cloudhackathons@google.com": "Hackathon Judge",
+}
+
+
+def _display_names() -> dict:
+    names = dict(_DISPLAY_NAMES)
+    for pair in os.environ.get("CLOUDCAP_DISPLAY_NAMES", "").split(","):
+        e, _, n = pair.partition(":")
+        if e.strip() and n.strip():
+            names[e.strip().lower()] = n.strip()
+    return names
+
+
 _app = None
 _init_failed = False
 # Last verification/init failure reason (surfaced to the client + server log).
@@ -120,7 +139,7 @@ def _apply_allowlist(email: str | None, name: str | None, picture: str | None) -
     role = users.get(email, "operator")
     return {
         "email": email,
-        "name": name or email or "user",
+        "name": _display_names().get(email) or name or email or "user",
         "picture": picture,
         "role": role,
         "roles": ["admin", "operator"] if role == "admin" else ["operator"],
