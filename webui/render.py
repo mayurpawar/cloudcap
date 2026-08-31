@@ -321,21 +321,49 @@ def _read_only_script():
     )
 
 
+def _scanning_banner(started):
+    when = f" (started {esc(started)} UTC)" if started else ""
+    return ('<div class="flex items-center gap-2 rounded-lg border border-primary/30 '
+            'bg-primary-container/40 text-on-surface px-4 py-2.5 text-xs">'
+            '<span class="material-symbols-outlined text-base animate-spin select-none">progress_activity</span>'
+            f'<span><b class="text-on-surface">Scan in progress…</b>{when} — this page refreshes '
+            'automatically when it completes.</span></div>')
+
+
+def _scanning_script():
+    """Disable the scan triggers everywhere and poll until the scan finishes, then reload."""
+    return (
+        "<script>(function(){var T='Scan in progress…';"
+        "document.querySelectorAll('form[action=\"/scan/run\"] button').forEach("
+        "function(b){b.disabled=true;b.title=T;});"
+        "var p=setInterval(function(){fetch('/scan/status',{credentials:'same-origin'})"
+        ".then(function(r){return r.json();}).then(function(s){"
+        "if(!s||!s.active){clearInterval(p);location.reload();}}).catch(function(){});},4000);"
+        "})();</script>"
+    )
+
+
 def shell(html, active, project, auth, title=None):
     """Replace each screen's sidebar + header with ONE canonical shell; content stays."""
+    from agents import scan_status
     html = re.sub(r"<header[^>]*>.*?</header>", "", html, count=1, flags=re.S)  # drop screen's header
     read_only = (auth or {}).get("role") != "admin"
+    scan = scan_status.status()
+    scanning = bool(scan.get("active"))
     canon = ('<body class="bg-background text-on-background min-h-screen flex antialiased">'
              + _sidebar(active, project)
              + '<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">'
              + _header(active, auth, title)
              + '<div class="p-8 lg:p-12 flex-1 space-y-8">'
+             + (_scanning_banner(scan.get("started", "")) if scanning else "")
              + (_read_only_banner() if read_only else ""))
     html = re.sub(r"<body[^>]*>.*?<main[^>]*>", lambda m: canon, html, count=1, flags=re.S)
     html = html.replace("</main>", "</div>" + _footer() + "</main>", 1)
     html = html.replace(" ml-64", "")
     if read_only:
         html += _read_only_script()
+    if scanning:
+        html += _scanning_script()
     return html
 
 

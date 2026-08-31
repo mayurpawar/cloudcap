@@ -152,6 +152,11 @@ def make_handler(project):
         def do_GET(self):  # noqa: N802
             if self.path.startswith("/favicon") or self.path.startswith("/logo-small"):
                 return self._serve_static(self.path)
+            if self.path.split("?", 1)[0] == "/scan/status":
+                import json as _json
+
+                from agents import scan_status
+                return self._send(_json.dumps(scan_status.status()), ctype="application/json")
             if self.path == "/logout":
                 sid = self._sid()
                 if sid:
@@ -296,8 +301,10 @@ def make_handler(project):
                 import json as _json
 
                 from agents.scan import run_scan
+                from agents import scan_status
                 scan_mode = os.environ.get("CLOUDCAP_SCAN_MODE", "mock")
                 scan_proj = os.environ.get("CLOUDCAP_SCAN_PROJECT", "")
+                scan_status.begin()
                 try:
                     res = asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
                     return self._send(_json.dumps({"status": "ok", "trigger": "scheduler",
@@ -305,6 +312,8 @@ def make_handler(project):
                                       ctype="application/json")
                 except Exception as exc:  # noqa: BLE001
                     return self._send(f"scan error: {exc}", code=500)
+                finally:
+                    scan_status.end()
 
             form = urllib.parse.parse_qs(raw.decode()) if raw else {}
             g = lambda k, d="": form.get(k, [d])[0]
@@ -380,9 +389,14 @@ def make_handler(project):
                     import asyncio
 
                     from agents.scan import run_scan
+                    from agents import scan_status
                     scan_mode = os.environ.get("CLOUDCAP_SCAN_MODE", "mock")
                     scan_proj = os.environ.get("CLOUDCAP_SCAN_PROJECT", project)
-                    asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
+                    scan_status.begin()
+                    try:
+                        asyncio.run(run_scan(scan_proj, mode=scan_mode, durable_audit=True))
+                    finally:
+                        scan_status.end()
                     st.set(first_scan_done=True)
                     return self._redirect("/board?scanned=1")
                 return self._redirect("/onboarding")
