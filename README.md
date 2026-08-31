@@ -15,9 +15,15 @@ state (**Memory Bank**), screens untrusted resource metadata and redacts PII
 
 > **For hackathon judges:** the app is deployed and pre-seeded. Explore the full UI with the
 > **read-only judge accounts** — credentials are shared privately in the Devpost submission's
-> **Testing Instructions** (not in this public repo). Those accounts can view everything but
-> cannot change config, onboard, or run scans. Follow the [**3-minute tour**](#a-3-minute-tour),
+> **Testing Instructions** (not in this public repo). Those accounts can view everything, run a
+> scan, and accept findings, but cannot change configuration. Follow the [**3-minute tour**](#a-3-minute-tour),
 > or verify offline (no cloud or credentials) via [**Reproducible testing**](#reproducible-testing).
+>
+> **Cost note:** following the hackathon's own guidance to switch services off after recording the
+> demo, the live billable cloud resources have been decommissioned. The app now runs in **seeded-demo
+> mode** (Cloud Run scale-to-zero, ~$0/day) so you can still explore everything and run a scan — the
+> **live** execution against real GCP (real findings, the `.run` backend, and a real remediation PR)
+> is captured end-to-end in the **[demo video](https://youtu.be/L0A1moUZZ9w)**.
 
 ## Architecture
 Hub-and-spoke control plane: deployed once into a dedicated **hub project**, granted

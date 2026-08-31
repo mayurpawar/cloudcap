@@ -1489,10 +1489,21 @@ def render_board(project="demo-proj", page=1, scanned=False):
         f'{_pager("/board", page, len(fd), per)}</section>')
 
     ts = d.get("scan_ts", "")
+    is_live = d.get("mode") == "live"
+    demo_note = ("" if is_live else
+                 '<div class="mb-4 flex items-start gap-2 rounded-lg border border-outline-variant/30 '
+                 'bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant">'
+                 '<span class="material-symbols-outlined text-base select-none">savings</span>'
+                 '<span><b class="text-on-surface">Seeded-demo mode.</b> Following the hackathon\'s '
+                 'guidance to switch services off after the demo, the live billable resources were '
+                 'decommissioned to keep costs near zero — scans return representative seeded findings. '
+                 'The full <b class="text-on-surface">live</b> run against real GCP (real findings, a real '
+                 'remediation PR) is in the demo video.</span></div>')
     scan_bar = (
+        demo_note +
         '<div class="flex items-center justify-between mb-4">'
         f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span>{" UTC" if ts else ""} · '
-        f'<span class="font-semibold">{"LIVE" if d.get("mode")=="live" else "DEMO"}</span></p>'
+        f'<span class="font-semibold">{"LIVE" if is_live else "DEMO"}</span></p>'
         + _scan_button("Re-scan", secondary=True) + '</div>')
     # Unmistakable completion signal after a scan finishes (the POST redirects here with
     # ?scanned=1) — a big green banner so it's obvious the scan is done.
