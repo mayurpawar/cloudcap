@@ -290,7 +290,7 @@ _RO_ALLOWED_ACTIONS = ("/scan/run", "/suppress", "/login")
 def _read_only_banner():
     return ('<div class="flex items-center gap-2 rounded-lg border border-outline-variant/30 '
             'bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant">'
-            '<span class="material-symbols-outlined text-base">visibility</span>'
+            '<span class="material-symbols-outlined text-base select-none">visibility</span>'
             '<span><b class="text-on-surface">Read-only access.</b> You can view everything, '
             'run a scan, and accept findings. Configuration is admin-only.</span></div>')
 
