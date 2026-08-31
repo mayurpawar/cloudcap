@@ -301,6 +301,11 @@ def _read_only_script():
     obvious (no dead clicks). Runs after all server-side HTML transforms."""
     allow = "{" + ",".join(f"'{a}':1" for a in _RO_ALLOWED_ACTIONS) + "}"
     return (
+        "<style>form[data-cctip]{position:relative}"
+        "form[data-cctip]:hover::after{content:attr(data-cctip);position:absolute;right:0;top:100%;"
+        "margin-top:6px;z-index:60;width:max-content;max-width:280px;background:#1f2937;color:#fff;"
+        "font-size:11px;line-height:1.45;padding:7px 9px;border-radius:6px;white-space:normal;"
+        "text-align:left;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.22)}</style>"
         "<script>(function(){var A=" + allow + ";var T='Only admins can change this';"
         "var S='Live scanning is paused for judging — the test environment was decommissioned "
         "to keep costs near zero. See the demo video for the live run.';"
@@ -319,8 +324,9 @@ def _read_only_script():
         "document.querySelectorAll('[onclick]').forEach(function(el){"
         "var m=(el.getAttribute('onclick')||'').match(/ccSave\\('([^']+)'/);"
         "if(m&&!A[m[1]]){el.style.display='none';}});"
-        "document.querySelectorAll('form[action=\"/scan/run\"] button').forEach("
-        "function(b){b.disabled=true;b.title=S;});"
+        "document.querySelectorAll('form[action=\"/scan/run\"]').forEach(function(f){"
+        "f.setAttribute('data-cctip',S);f.querySelectorAll('button').forEach("
+        "function(b){b.disabled=true;});});"
         "})();</script>"
     )
 
