@@ -380,8 +380,16 @@ def render_login():
             '<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>'
             '<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>'
             '<script>firebase.initializeApp(' + json.dumps(cfg) + ');'
+            'function ccErr(m){var e=document.getElementById("cc-login-err");'
+            'if(!e){e=document.createElement("div");e.id="cc-login-err";'
+            'e.className="mx-auto mb-4 max-w-sm rounded-lg border border-error/30 '
+            'bg-error-container text-on-error-container px-4 py-3 text-sm text-center";'
+            'var f=document.querySelector(\'form[action="/login"]\');'
+            'if(f&&f.parentNode){f.parentNode.insertBefore(e,f);}else{document.body.prepend(e);}}'
+            'e.textContent=m;e.style.display="block";e.scrollIntoView({block:"nearest"});}'
             'document.querySelectorAll(\'form[action="/login"]\').forEach(function(f){'
             'f.addEventListener("submit",async function(e){e.preventDefault();'
+            'var pe=document.getElementById("cc-login-err");if(pe){pe.style.display="none";}'
             'var google=f.querySelector(\'input[name=method][value=google]\');try{var cred;'
             'if(google){cred=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());}'
             'else{var em=(f.querySelector(\'input[type=email],input[name=email]\')||{}).value;'
@@ -390,8 +398,11 @@ def render_login():
             'var tok=await cred.user.getIdToken();'
             'var r=await fetch("/auth/firebase",{method:"POST",credentials:"same-origin",'
             'headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken:tok})});'
-            'if(r.ok){location.href="/";}else{var t=await r.text();alert("Sign-in rejected by server: "+t);}'
-            '}catch(err){alert(err.message||"sign-in failed");}});});</script>')
+            'if(r.ok){location.href="/";}else{var t=await r.text();'
+            'ccErr((t||"").trim()||"Sign-in was rejected.");}'
+            '}catch(err){if(err&&(err.code==="auth/popup-closed-by-user"'
+            '||err.code==="auth/cancelled-popup-request"))return;'
+            'ccErr((err&&err.message)||"Sign-in failed.");}});});</script>')
         html = html.replace("</body>", script + "</body>", 1)
     return html
 
