@@ -248,10 +248,15 @@ def make_handler(project):
             if path == "/logs":
                 from agents.audit_reader import read_audit
                 agent = query.get("agent")
-                entries = read_audit(agent=agent, limit=120)
+                ts = query.get("ts")
+                entries = read_audit(agent=agent, around=ts, limit=120)
                 if agent:
                     title, subtitle, back = (f"Agent logs · {agent}",
                                              f"Cloud Logging audit events emitted by the {agent} agent.", "/hub")
+                elif ts:
+                    title, subtitle, back = (f"Scan audit log · {ts} UTC",
+                                             "The immutable, hash-chained events for this scan.",
+                                             "/history")
                 else:
                     title, subtitle, back = ("Scan audit log",
                                              "The immutable, hash-chained Cloud Logging audit trail — most recent governance events.",
