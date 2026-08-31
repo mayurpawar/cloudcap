@@ -69,6 +69,26 @@ python -m agents.run --mode live --project YOUR_TEST_PROJECT   # read-only, agai
 > `terraform/chaos-env` is **optional** — it's our seeded eval target, not required to install.
 > To deploy the full hosted fleet (Cloud Run + Firestore), use the **Install (customer side)** steps above.
 
+## Reproducible testing
+Every quantified claim the demo makes — recall, precision, $ waste, and the ClickOps
+attribution — is verifiable from a clean checkout with **no cloud and no credentials**.
+Mock mode runs on the Python standard library alone.
+
+```bash
+pip install -e .
+
+# 1. Generate findings deterministically (mock mode — no GCP calls).
+python -m agents.run --mode mock --project demo-proj --out eval/last_findings.json
+
+# 2. Score them against the planted ground truth.
+python -m eval.score --findings eval/last_findings.json --ground-truth eval/ground_truth.json
+```
+
+Prints the **eval scorecard**: recall (planted issues found), precision, monthly waste
+identified, and the ClickOps/UNMANAGED attribution check (PASS/FAIL). A pre-generated
+`eval/last_findings.json` is committed, so step 2 also runs stand-alone. Verify the
+immutable audit trail with `python -m agents.audit` (hash-chained).
+
 ## How users interact
 - **Discovery:** agents appear in the org **Agent Registry** for cross-dept use.
 - **Dashboard** (Cloud Run): fleet status, findings, eval scorecard, Memory Bank
