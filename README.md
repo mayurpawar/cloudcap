@@ -19,11 +19,13 @@ state (**Memory Bank**), screens untrusted resource metadata and redacts PII
 > scan, and accept findings, but cannot change configuration. Follow the [**3-minute tour**](#a-3-minute-tour),
 > or verify offline (no cloud or credentials) via [**Reproducible testing**](#reproducible-testing).
 >
-> **Cost note:** following the hackathon's own guidance to switch services off after recording the
-> demo, the live billable cloud resources have been decommissioned. The app now runs in **seeded-demo
-> mode** (Cloud Run scale-to-zero, ~$0/day) so you can still explore everything and run a scan — the
-> **live** execution against real GCP (real findings, the `.run` backend, and a real remediation PR)
-> is captured end-to-end in the **[demo video](https://youtu.be/L0A1moUZZ9w)**.
+> **Cost note:** every finding, scan, and audit-log entry through **31 Aug 2026** is **real** — produced
+> by the fleet running **live** against a dedicated GCP test project seeded with deliberately-flawed cost
+> and security resources. To keep costs near zero during the judging period (per the hackathon's own
+> "switch services off after the demo" guidance), that test project has been decommissioned; the app now
+> runs in **seeded-demo mode** (Cloud Run scale-to-zero, ~$0/day) so you can still explore everything and
+> run a scan. The full **live** run against real GCP (real findings, the `.run` backend, and a real
+> remediation PR) is captured end-to-end in the **[demo video](https://youtu.be/L0A1moUZZ9w)**.
 
 ## Architecture
 Hub-and-spoke control plane: deployed once into a dedicated **hub project**, granted

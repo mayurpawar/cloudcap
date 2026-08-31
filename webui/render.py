@@ -1494,11 +1494,12 @@ def render_board(project="demo-proj", page=1, scanned=False):
                  '<div class="mb-4 flex items-start gap-2 rounded-lg border border-outline-variant/30 '
                  'bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant">'
                  '<span class="material-symbols-outlined text-base select-none">savings</span>'
-                 '<span><b class="text-on-surface">Seeded-demo mode.</b> Following the hackathon\'s '
-                 'guidance to switch services off after the demo, the live billable resources were '
-                 'decommissioned to keep costs near zero — scans return representative seeded findings. '
-                 'The full <b class="text-on-surface">live</b> run against real GCP (real findings, a real '
-                 'remediation PR) is in the demo video.</span></div>')
+                 '<span><b class="text-on-surface">Seeded-demo mode.</b> Every finding, scan, and audit '
+                 'log through <b class="text-on-surface">31 Aug 2026</b> is real — produced by the fleet '
+                 'running <b class="text-on-surface">live</b> against a dedicated GCP test project seeded '
+                 'with deliberately-flawed cost and security resources. That test project has been '
+                 'decommissioned to keep costs near zero (per the hackathon guidance); scans now return '
+                 'representative seeded findings. The full live run is in the demo video.</span></div>')
     scan_bar = (
         demo_note +
         '<div class="flex items-center justify-between mb-4">'
