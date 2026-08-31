@@ -127,6 +127,13 @@ That's the *"detect on the cloud, fix in the code"* thesis, screen by screen.
 - **Alerts:** findings via email/Chat; **remediation via approve/reject** (gated).
 - **Reports:** Reporter agent emails the weekly exec summary.
 
+## Scanning cadence (cost-aware)
+CloudCap runs on a **Cloud Scheduler cron — daily by default, adjustable to any cadence** —
+plus an on-demand **Run scan** for a fresh pass when you need one. Scheduled + on-demand keeps
+compute minimal: the fleet only runs when it needs to, and Cloud Run **scales to zero** in
+between, so there's no idle cost. Reacting to specific **cloud events** (e.g. a new public IAM
+binding) is on the roadmap — additive to the schedule, no agent-logic change.
+
 ## Repo layout
 See `BLUEPRINT.md` §9. Strategy, 13-day plan, and demo script live in `BLUEPRINT.md`.
 
