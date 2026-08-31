@@ -113,6 +113,13 @@ In the deployed app (or a local run), this path tells the whole story end to end
 
 That's the *"detect on the cloud, fix in the code"* thesis, screen by screen.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Findings board](docs/board.png)<br>**Findings board** — cost, security, IAM & compliance in one view, each with $ impact and a proposed fix | ![Compliance posture](docs/compliance.png)<br>**Compliance posture** — live controls mapped to CIS, SOC 2, ISO 27001 & PCI DSS |
+| ![Agent fleet](docs/agents-fleet.png)<br>**Agent fleet** — each scanner, its model (Gemini 3.7) and least-privilege identity | ![Immutable audit log](docs/audit-log.png)<br>**Immutable audit log** — every agent action hash-chained in Cloud Logging |
+
 ## How users interact
 - **Discovery:** agents appear in the org **Agent Registry** for cross-dept use.
 - **Dashboard** (Cloud Run): fleet status, findings, eval scorecard, Memory Bank
