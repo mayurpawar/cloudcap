@@ -13,6 +13,12 @@ state (**Memory Bank**), screens untrusted resource metadata and redacts PII
 
 🎥 **[Watch the demo video](https://youtu.be/L0A1moUZZ9w)** — a walkthrough of the fleet detecting live cloud drift and opening a fix as a Pull Request.
 
+> **For hackathon judges:** the app is deployed and pre-seeded. Explore the full UI with the
+> **read-only judge accounts** — credentials are shared privately in the Devpost submission's
+> **Testing Instructions** (not in this public repo). Those accounts can view everything but
+> cannot change config, onboard, or run scans. Prefer to verify offline, no cloud or credentials
+> needed? See [**Reproducible testing**](#reproducible-testing) below.
+
 ## Architecture
 Hub-and-spoke control plane: deployed once into a dedicated **hub project**, granted
 **read-only** access across the org/folder scope. Full diagrams + pillar map in
