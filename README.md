@@ -11,6 +11,8 @@ state (**Memory Bank**), screens untrusted resource metadata and redacts PII
 (**Model Armor**), and emits an auditable reasoning-chain trace for every decision
 (**Agent Observability**). Remediation is always **human-gated**.
 
+🎥 **[Watch the demo video](https://youtu.be/L0A1moUZZ9w)** — a walkthrough of the fleet detecting live cloud drift and opening a fix as a Pull Request.
+
 ## Architecture
 Hub-and-spoke control plane: deployed once into a dedicated **hub project**, granted
 **read-only** access across the org/folder scope. Full diagrams + pillar map in
