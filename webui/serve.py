@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import os
 import urllib.parse
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from webui.sessions import build_sessions
 
@@ -526,7 +526,7 @@ def main():
         except Exception as _e:
             print(f"[diag] firestore FAILED: {type(_e).__name__}: {str(_e)[:260]}", flush=True)
 
-    srv = HTTPServer((host, a.port), make_handler(a.project))
+    srv = ThreadingHTTPServer((host, a.port), make_handler(a.project))
     print(f"CloudCap UI → http://{host}:{a.port}  (Ctrl+C to stop)")
     try:
         srv.serve_forever()
