@@ -364,8 +364,9 @@ def make_handler(project):
                 from agents.policy import ACTIONS, ActionPolicy
                 from agents.project_settings import ProjectSettings
                 from agents.sources import SourcesConfig, all_projects
-                # Operators may re-scan; onboarding/config remains admin-only.
-                if auth["role"] != "admin" and self.path != "/scan/run":
+                # Onboarding + scan are admin-only (operator scanning disabled for judging,
+                # so the persisted live board can't be overwritten with seeded data).
+                if auth["role"] != "admin":
                     return self._redirect("/")
                 st = OnboardingState()
 

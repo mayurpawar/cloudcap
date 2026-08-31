@@ -302,6 +302,8 @@ def _read_only_script():
     allow = "{" + ",".join(f"'{a}':1" for a in _RO_ALLOWED_ACTIONS) + "}"
     return (
         "<script>(function(){var A=" + allow + ";var T='Only admins can change this';"
+        "var S='Live scanning is paused for judging — the test environment was decommissioned "
+        "to keep costs near zero. See the demo video for the live run.';"
         "function note(f){var n=document.createElement('div');"
         "n.className='text-[10px] font-semibold text-on-surface-variant/70 mt-1';"
         "n.textContent=T;f.appendChild(n);}"
@@ -317,6 +319,8 @@ def _read_only_script():
         "document.querySelectorAll('[onclick]').forEach(function(el){"
         "var m=(el.getAttribute('onclick')||'').match(/ccSave\\('([^']+)'/);"
         "if(m&&!A[m[1]]){el.style.display='none';}});"
+        "document.querySelectorAll('form[action=\"/scan/run\"] button').forEach("
+        "function(b){b.disabled=true;b.title=S;});"
         "})();</script>"
     )
 
@@ -1489,22 +1493,10 @@ def render_board(project="demo-proj", page=1, scanned=False):
         f'{_pager("/board", page, len(fd), per)}</section>')
 
     ts = d.get("scan_ts", "")
-    is_live = d.get("mode") == "live"
-    demo_note = ("" if is_live else
-                 '<div class="mb-4 flex items-start gap-2 rounded-lg border border-outline-variant/30 '
-                 'bg-surface-container-low px-4 py-2.5 text-xs text-on-surface-variant">'
-                 '<span class="material-symbols-outlined text-base select-none">savings</span>'
-                 '<span><b class="text-on-surface">Seeded-demo mode.</b> Every finding, scan, and audit '
-                 'log through <b class="text-on-surface">31 Aug 2026</b> is real — produced by the fleet '
-                 'running <b class="text-on-surface">live</b> against a dedicated GCP test project seeded '
-                 'with deliberately-flawed cost and security resources. That test project has been '
-                 'decommissioned to keep costs near zero (per the hackathon guidance); scans now return '
-                 'representative seeded findings. The full live run is in the demo video.</span></div>')
     scan_bar = (
-        demo_note +
         '<div class="flex items-center justify-between mb-4">'
         f'<p class="text-xs text-on-surface-variant">Last scan: <span class="font-mono">{esc(ts)}</span>{" UTC" if ts else ""} · '
-        f'<span class="font-semibold">{"LIVE" if is_live else "DEMO"}</span></p>'
+        f'<span class="font-semibold">{"LIVE" if d.get("mode")=="live" else "DEMO"}</span></p>'
         + _scan_button("Re-scan", secondary=True) + '</div>')
     # Unmistakable completion signal after a scan finishes (the POST redirects here with
     # ?scanned=1) — a big green banner so it's obvious the scan is done.
